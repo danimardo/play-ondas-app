@@ -1,0 +1,39 @@
+# Logs de desarrollo (recreados en cada arranque)
+.logs/
+
+# Dependencias
+node_modules/
+
+# Build outputs
+dist/
+build/
+src-tauri/target/
+
+# Variables de entorno (nunca commitear secretos)
+.env
+.env.local
+.env.*.local
+
+# Configuración local de agentes de IA (permisos locales, no para el repo)
+.claude/settings.local.json
+
+# Artefactos de distribución generados
+*.msi
+*.deb
+*.rpm
+*.AppImage
+*.dmg
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/settings.json
+.idea/
+*.suo
+*.user
+
+# pnpm
+.pnpm-store/

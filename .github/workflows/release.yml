@@ -1,0 +1,85 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  release:
+    permissions:
+      contents: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows-latest
+            args: ''
+          - platform: ubuntu-22.04
+            args: ''
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Instalar dependencias del sistema (solo Linux)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Instalar Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Caché de Rust
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Instalar dependencias del frontend
+        run: pnpm install
+
+      - name: Compilar y publicar release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Play Ondas app ${{ github.ref_name }}'
+          releaseBody: |
+            ## Novedades
+
+            Consulta el historial de commits para ver los cambios incluidos en esta versión.
+
+            ## Descargar
+
+            | Plataforma | Archivo |
+            |------------|---------|
+            | Windows 10/11 (x64) | `PlayOndasApp_*_x64_en-US.msi` |
+            | Linux x64 | `play-ondas-app_*_amd64.AppImage` |
+
+            ### Linux — hacer ejecutable el AppImage
+            ```bash
+            chmod +x play-ondas-app_*.AppImage
+            ./play-ondas-app_*.AppImage
+            ```
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}
