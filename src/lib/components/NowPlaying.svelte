@@ -17,8 +17,8 @@
 
   const isCustom = $derived(playerStore.currentAudioSource === 'custom');
 
-  // Alturas base para la forma visual del waveform en reposo (escala 0–100)
-  const barHeights = [35, 55, 75, 95, 100, 85, 65, 45, 60, 80, 100, 90, 70, 50, 40, 55, 75, 95, 100, 80, 60, 40, 55, 70];
+  // Alturas base del waveform en reposo — mínimo 55 para que ninguna barra quede como un stub plano
+  const barHeights = [55, 68, 82, 96, 100, 90, 74, 60, 72, 88, 100, 92, 76, 62, 58, 74, 88, 100, 90, 76, 62, 68, 85, 72];
 </script>
 
 {#if currentWave}
@@ -60,21 +60,22 @@
       {/if}
     </div>
 
-    <!-- Waveform grande centrada -->
+    <!-- Waveform grande centrada — ancho restringido como en el diseño, no ocupa todo el contenedor -->
     <div class="flex-1 flex items-center justify-center py-4">
-      <div class="flex items-end justify-center gap-1 w-full h-36 px-4">
+      <div class="flex items-end justify-center gap-[3px] w-3/4 max-w-xs h-36">
         {#each barHeights as baseH, i}
           <div
             class="flex-1 rounded-full origin-bottom"
-            class:animate-waveBar={isPlaying}
+            class:waveBarPulse={isPlaying}
             style="
               height: 100%;
               background-color: {currentWave.color};
-              animation-delay: {i * 55}ms;
-              animation-duration: {650 + (i % 8) * 90}ms;
-              transform: scaleY({isPlaying ? 1 : baseH / 100 * 0.6});
-              transition: transform 0.5s ease, opacity 0.5s ease;
-              opacity: {isPlaying ? 1 : 0.5};
+              --waveform-min: {(baseH / 100 * 0.58).toFixed(3)};
+              --waveform-dur: {600 + (i % 8) * 90}ms;
+              --waveform-delay: {i * 50}ms;
+              transform: scaleY({isPlaying ? 1 : (baseH / 100 * 0.82).toFixed(3)});
+              transition: transform 0.4s ease, opacity 0.3s ease;
+              opacity: {isPlaying ? 1 : 0.6};
             "
           ></div>
         {/each}
@@ -95,12 +96,18 @@
 {/if}
 
 <style>
-  .animate-waveBar {
-    animation: waveBar 1.2s ease-in-out infinite;
+  /* Animación con mínimo por barra vía CSS custom property — cada barra oscila entre su propia altura base y el 100% */
+  @keyframes waveBarPulse {
+    0%, 100% { transform: scaleY(var(--waveform-min, 0.55)); }
+    50%       { transform: scaleY(1); }
+  }
+
+  .waveBarPulse {
+    animation: waveBarPulse var(--waveform-dur, 800ms) ease-in-out var(--waveform-delay, 0ms) infinite;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .animate-waveBar {
+    .waveBarPulse {
       animation: none !important;
     }
   }

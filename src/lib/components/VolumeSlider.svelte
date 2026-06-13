@@ -11,7 +11,7 @@
   const volume = $derived(playerStore.volume);
 </script>
 
-<div class="flex items-center gap-3 w-48 select-none">
+<div class="flex items-center gap-2 w-36 select-none">
   <!-- Volume Icon -->
   <button
     class="text-mut hover:text-ink transition-colors cursor-pointer"

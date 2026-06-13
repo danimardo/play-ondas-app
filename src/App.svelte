@@ -99,12 +99,13 @@
   onMount(async () => {
     window.addEventListener('keydown', handleKeyDown);
 
-    // Bootstrap de configuración y sincronización con el reproductor
-    await settingsStore.initSettings();
+    // Bootstrap: initSettings y isTrayAvailable son independientes entre sí — se ejecutan en paralelo
+    const [, tray] = await Promise.all([
+      settingsStore.initSettings(),
+      isTrayAvailable(),
+    ]);
     playerController.syncFromSettings();
-
-    // Comprobar bandeja
-    trayAvailable = await isTrayAvailable();
+    trayAvailable = tray;
 
     // Restaurar geometría de ventana guardada
     const win = getCurrentWindow();
@@ -240,7 +241,21 @@
     />
   {/if}
 {:else}
-  <div class="h-screen w-screen flex items-center justify-center bg-bg font-sans text-body text-mut">
-    Cargando…
+  <div class="h-screen w-screen flex flex-col items-center justify-center gap-5 bg-bg select-none">
+    <span class="font-sans font-bold text-label text-ink tracking-wide">
+      Play Ondas <span class="text-accent">app</span>
+    </span>
+    <div class="flex items-center gap-1.5">
+      <span class="w-1.5 h-1.5 rounded-full bg-accent" style="animation: loadDot 1.2s ease-in-out 0ms infinite;"></span>
+      <span class="w-1.5 h-1.5 rounded-full bg-accent" style="animation: loadDot 1.2s ease-in-out 200ms infinite;"></span>
+      <span class="w-1.5 h-1.5 rounded-full bg-accent" style="animation: loadDot 1.2s ease-in-out 400ms infinite;"></span>
+    </div>
   </div>
 {/if}
+
+<style>
+  @keyframes loadDot {
+    0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+    40%            { opacity: 1;   transform: scale(1); }
+  }
+</style>

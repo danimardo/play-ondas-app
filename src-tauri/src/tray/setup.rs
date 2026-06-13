@@ -43,7 +43,8 @@ pub fn build_tray(app: &AppHandle) {
             }
         })
         .on_tray_icon_event(move |tray: &tauri::tray::TrayIcon, event: tauri::tray::TrayIconEvent| {
-            if let TrayIconEvent::Click { .. } = event {
+            // Solo el clic izquierdo alterna la ventana; el clic derecho muestra el menú contextual nativo
+            if let TrayIconEvent::Click { button: tauri::tray::MouseButton::Left, .. } = event {
                 let app_handle = tray.app_handle();
                 if let Some(main_window) = app_handle.get_webview_window("main") {
                     if main_window.is_visible().unwrap_or(false) {
