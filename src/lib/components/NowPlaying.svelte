@@ -36,7 +36,7 @@
         <div class="ml-7 flex flex-col gap-1 max-w-lg">
           <p class="font-sans text-body-sm text-ink-2 leading-snug">{currentWave.shortDescription}</p>
           <p class="font-sans text-body-sm text-mut leading-snug">
-            <span class="text-faint">Uso · </span>{currentWave.recommendedFor}
+            <span class="text-accent">Uso · </span>{currentWave.recommendedFor}
           </p>
         </div>
       </div>
@@ -45,16 +45,12 @@
       {#if isPlaying}
         <div class="shrink-0 text-right">
           <span class="font-mono text-kicker text-faint block uppercase tracking-widest mb-1">Reproduciendo</span>
-          <span class="font-mono text-micro text-ink-2 block">{audioSourceLabel}</span>
           {#if isCustom}
+            <span class="font-mono text-micro text-ink-2 block">{audioSourceLabel}</span>
             <span
               class="inline-block mt-1 font-mono text-micro font-bold uppercase px-2 py-0.5 rounded-pill"
               style="background-color: {currentWave.color}22; color: {currentWave.color};"
             >Personalizado</span>
-          {:else}
-            <span class="inline-block mt-1 font-mono text-micro text-faint bg-line px-2 py-0.5 rounded-pill">
-              Predeterminado
-            </span>
           {/if}
         </div>
       {/if}
@@ -62,10 +58,10 @@
 
     <!-- Waveform grande centrada — ancho restringido como en el diseño, no ocupa todo el contenedor -->
     <div class="flex-1 flex items-center justify-center py-4">
-      <div class="flex items-end justify-center gap-[3px] w-3/4 max-w-xs h-36">
+      <div class="flex items-center justify-center gap-[3px] w-3/4 max-w-xs h-36">
         {#each barHeights as baseH, i}
           <div
-            class="flex-1 rounded-full origin-bottom"
+            class="flex-1 rounded-full origin-center"
             class:waveBarPulse={isPlaying}
             style="
               height: 100%;
@@ -82,12 +78,6 @@
       </div>
     </div>
 
-    <!-- Disclaimer al fondo -->
-    <div class="pt-3 border-t border-line text-center">
-      <p class="font-sans text-caption text-mut max-w-lg mx-auto italic">
-        Este audio es material de acompañamiento sonoro. No sustituye consejo médico profesional.
-      </p>
-    </div>
   </div>
 {:else}
   <div class="flex-1 flex items-center justify-center p-6 bg-surface">

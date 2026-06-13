@@ -1,27 +1,23 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import TopBar from './TopBar.svelte';
-  
+
   interface Props {
-    view: 'main' | 'settings';
-    onChangeView: (view: 'main' | 'settings') => void;
     sidebar: Snippet;
     content: Snippet;
     controls: Snippet;
   }
 
-  let { view, onChangeView, sidebar, content, controls }: Props = $props();
+  let { sidebar, content, controls }: Props = $props();
 </script>
 
 <div class="h-screen w-screen flex flex-col bg-bg text-ink overflow-hidden">
   <!-- Top Header -->
-  <TopBar {view} {onChangeView} />
+  <TopBar />
 
   <!-- Main Work Area -->
   <div class="flex-1 flex overflow-hidden">
-    {#if view === 'main'}
-      {@render sidebar()}
-    {/if}
+    {@render sidebar()}
     <main class="flex-1 flex flex-col overflow-hidden bg-surface">
       {@render content()}
     </main>

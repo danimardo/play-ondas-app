@@ -1,14 +1,8 @@
 <script lang="ts">
   import { getCurrentWindow } from '@tauri-apps/api/window';
+  import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
   import { settingsStore } from '../stores/settingsStore.svelte';
   import type { Theme } from '../schemas/settingsSchema';
-
-  interface Props {
-    view: 'main' | 'settings';
-    onChangeView: (view: 'main' | 'settings') => void;
-  }
-
-  let { view, onChangeView }: Props = $props();
 
   const themeLabels: Record<Theme, string> = {
     auto: 'Auto',
@@ -28,6 +22,14 @@
 
   async function close() {
     await getCurrentWindow().close();
+  }
+
+  async function openSettingsWindow() {
+    const win = await WebviewWindow.getByLabel('settings');
+    if (win) {
+      await win.show();
+      await win.setFocus();
+    }
   }
 </script>
 
@@ -78,15 +80,13 @@
       —
     </button>
 
-    {#if view === 'main'}
-      <button
-        class="px-3 py-1 rounded-md font-sans text-label font-semibold text-ink-2 hover:text-ink hover:bg-line transition-colors cursor-pointer"
-        onclick={() => onChangeView('settings')}
-        aria-label="Configuración"
-        title="Configuración"
-      >
-        Configuración
-      </button>
-    {/if}
+    <button
+      class="px-3 py-1 rounded-md font-sans text-label font-semibold text-ink-2 hover:text-ink hover:bg-line transition-colors cursor-pointer"
+      onclick={openSettingsWindow}
+      aria-label="Configuración"
+      title="Configuración"
+    >
+      Configuración
+    </button>
   </div>
 </header>

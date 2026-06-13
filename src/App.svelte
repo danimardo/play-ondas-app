@@ -21,8 +21,11 @@
   import { getCurrentWindow } from '@tauri-apps/api/window';
   import { PhysicalPosition, PhysicalSize } from '@tauri-apps/api/dpi';
   import { listen } from '@tauri-apps/api/event';
+  import { logger } from './lib/client/logging/logger.client';
 
-  let currentView = $state<'main' | 'settings'>('main');
+  const windowLabel = getCurrentWindow().label;
+  const isSettingsWindow = windowLabel === 'settings';
+
   let isReady = $state(false);
   let showErrorToast = $state(false);
   let showCloseDialog = $state(false);
@@ -97,6 +100,22 @@
   }
 
   onMount(async () => {
+    if (isSettingsWindow) {
+      // Ventana de configuración: init mínimo (solo settings para el tema)
+      await settingsStore.initSettings();
+      isReady = true;
+
+      const win = getCurrentWindow();
+      // Ocultar en lugar de cerrar cuando el usuario pulsa el aspa del SO
+      const unlistenClose = await win.onCloseRequested(async (event) => {
+        event.preventDefault();
+        await win.hide();
+      });
+      unlistens.push(unlistenClose);
+      return;
+    }
+
+    // ── Ventana principal ────────────────────────────────────────────
     window.addEventListener('keydown', handleKeyDown);
 
     // Bootstrap: initSettings y isTrayAvailable son independientes entre sí — se ejecutan en paralelo
@@ -115,8 +134,12 @@
       settingsStore.windowWidth !== undefined &&
       settingsStore.windowHeight !== undefined
     ) {
-      await win.setPosition(new PhysicalPosition(settingsStore.windowX, settingsStore.windowY));
-      await win.setSize(new PhysicalSize(settingsStore.windowWidth, settingsStore.windowHeight));
+      try {
+        await win.setPosition(new PhysicalPosition(settingsStore.windowX, settingsStore.windowY));
+        await win.setSize(new PhysicalSize(settingsStore.windowWidth, settingsStore.windowHeight));
+      } catch (err) {
+        logger.warn('app.mount.geometry_failed', { errorMessage: err instanceof Error ? err.message : String(err) });
+      }
     }
 
     isReady = true;
@@ -167,6 +190,14 @@
     });
     unlistens.push(unlistenTray);
 
+    // Recargar settings al recuperar el foco (captura cambios hechos en la ventana de configuración)
+    const unlistenFocus = await win.onFocusChanged(({ payload: focused }) => {
+      if (focused) {
+        void settingsStore.reloadSettings();
+      }
+    });
+    unlistens.push(unlistenFocus);
+
     // Persistir posición y tamaño de ventana al mover/redimensionar
     const unlistenMove = await win.onMoved(() => scheduleWindowStateSave());
     const unlistenResize = await win.onResized(() => scheduleWindowStateSave());
@@ -182,75 +213,84 @@
   });
 </script>
 
-{#if isReady}
-  <AppShell
-    view={currentView}
-    onChangeView={(view) => currentView = view}
-  >
-    {#snippet sidebar()}
-      <WaveList onSelectWave={(id) => playerController.selectWave(id as WaveId)} />
-    {/snippet}
-
-    {#snippet content()}
-      {#if currentView === 'main'}
-        <MainView />
-      {:else}
-        <SettingsView onChangeView={(view) => currentView = view} />
-      {/if}
-    {/snippet}
-
-    {#snippet controls()}
-      <div class="flex items-center justify-between w-full h-full">
-        <!-- Espacio izquierdo vacío (alineación) -->
-        <div class="w-1/3"></div>
-
-        <!-- Controles de transporte centrados -->
-        <div class="w-1/3 flex items-center justify-center">
-          <TransportControls
-            onPlay={() => playerController.play()}
-            onPause={() => playerController.pause()}
-            onStop={() => playerController.stop()}
-            isDisabled={playerStore.currentAudioSource === 'unavailable'}
-          />
-        </div>
-
-        <!-- Volumen + Bucle a la derecha -->
-        <div class="w-1/3 flex items-center justify-end gap-4">
-          <VolumeSlider onChangeVolume={(vol) => playerController.setVolume(vol)} />
-          <LoopIndicator />
-        </div>
+{#if isSettingsWindow}
+  <!-- ── Ventana de configuración ── -->
+  {#if isReady}
+    <SettingsView onBack={async () => await getCurrentWindow().hide()} />
+  {:else}
+    <div class="h-screen w-screen flex items-center justify-center bg-surface select-none">
+      <div class="flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-accent" style="animation: loadDot 1.2s ease-in-out 0ms infinite;"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-accent" style="animation: loadDot 1.2s ease-in-out 200ms infinite;"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-accent" style="animation: loadDot 1.2s ease-in-out 400ms infinite;"></span>
       </div>
-    {/snippet}
-  </AppShell>
-
-  {#if showErrorToast}
-    <ErrorToast
-      message="Configuración corrupta recuperada con éxito. Se restauraron los valores por defecto."
-      onClose={() => showErrorToast = false}
-    />
-  {/if}
-
-  {#if downloadStore.missingFiles.length > 0 && !downloadStore.isCompleted}
-    <DownloadModal />
-  {/if}
-
-  {#if showCloseDialog}
-    <CloseToTrayDialog
-      onClose={() => showCloseDialog = false}
-      onSelectOption={handleCloseAction}
-    />
+    </div>
   {/if}
 {:else}
-  <div class="h-screen w-screen flex flex-col items-center justify-center gap-5 bg-bg select-none">
-    <span class="font-sans font-bold text-label text-ink tracking-wide">
-      Play Ondas <span class="text-accent">app</span>
-    </span>
-    <div class="flex items-center gap-1.5">
-      <span class="w-1.5 h-1.5 rounded-full bg-accent" style="animation: loadDot 1.2s ease-in-out 0ms infinite;"></span>
-      <span class="w-1.5 h-1.5 rounded-full bg-accent" style="animation: loadDot 1.2s ease-in-out 200ms infinite;"></span>
-      <span class="w-1.5 h-1.5 rounded-full bg-accent" style="animation: loadDot 1.2s ease-in-out 400ms infinite;"></span>
+  <!-- ── Ventana principal ── -->
+  {#if isReady}
+    <AppShell>
+      {#snippet sidebar()}
+        <WaveList onSelectWave={(id) => playerController.selectWave(id as WaveId)} />
+      {/snippet}
+
+      {#snippet content()}
+        <MainView />
+      {/snippet}
+
+      {#snippet controls()}
+        <div class="flex items-center justify-between w-full h-full">
+          <!-- Espacio izquierdo vacío (alineación) -->
+          <div class="w-1/3"></div>
+
+          <!-- Controles de transporte centrados -->
+          <div class="w-1/3 flex items-center justify-center">
+            <TransportControls
+              onPlay={() => playerController.play()}
+              onPause={() => playerController.pause()}
+              onStop={() => playerController.stop()}
+              isDisabled={playerStore.currentAudioSource === 'unavailable'}
+            />
+          </div>
+
+          <!-- Volumen + Bucle a la derecha -->
+          <div class="w-1/3 flex items-center justify-end gap-4">
+            <VolumeSlider onChangeVolume={(vol) => playerController.setVolume(vol)} />
+            <LoopIndicator />
+          </div>
+        </div>
+      {/snippet}
+    </AppShell>
+
+    {#if showErrorToast}
+      <ErrorToast
+        message="Configuración corrupta recuperada con éxito. Se restauraron los valores por defecto."
+        onClose={() => showErrorToast = false}
+      />
+    {/if}
+
+    {#if downloadStore.missingFiles.length > 0 && !downloadStore.isCompleted}
+      <DownloadModal />
+    {/if}
+
+    {#if showCloseDialog}
+      <CloseToTrayDialog
+        onClose={() => showCloseDialog = false}
+        onSelectOption={handleCloseAction}
+      />
+    {/if}
+  {:else}
+    <div class="h-screen w-screen flex flex-col items-center justify-center gap-5 bg-bg select-none">
+      <span class="font-sans font-bold text-label text-ink tracking-wide">
+        Play Ondas <span class="text-accent">app</span>
+      </span>
+      <div class="flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-accent" style="animation: loadDot 1.2s ease-in-out 0ms infinite;"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-accent" style="animation: loadDot 1.2s ease-in-out 200ms infinite;"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-accent" style="animation: loadDot 1.2s ease-in-out 400ms infinite;"></span>
+      </div>
     </div>
-  </div>
+  {/if}
 {/if}
 
 <style>

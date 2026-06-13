@@ -1,12 +1,26 @@
 <script lang="ts">
   import { Repeat } from 'lucide-svelte';
+  import { playerStore } from '../stores/playerStore.svelte';
+  import { audioService } from '../services/audioService';
+
+  const loop = $derived(playerStore.loop);
+
+  function toggle() {
+    playerStore.toggleLoop();
+    audioService.setLoop(playerStore.loop);
+  }
 </script>
 
-<div
-  class="inline-flex shrink-0 items-center gap-1 px-2.5 py-1.5 rounded-pill font-mono text-caption select-none"
-  style="color: var(--color-accent); background-color: color-mix(in srgb, var(--color-accent) 12%, transparent); border: 1px solid color-mix(in srgb, var(--color-accent) 25%, transparent);"
-  title="Bucle continuo activo"
+<button
+  class="w-9 h-9 flex items-center justify-center rounded-full transition-colors cursor-pointer"
+  style={loop
+    ? 'background-color: var(--color-accent); color: var(--color-accent-text);'
+    : 'color: var(--color-mut);'}
+  class:hover:bg-line={!loop}
+  onclick={toggle}
+  aria-pressed={loop}
+  aria-label={loop ? 'Desactivar bucle' : 'Activar bucle'}
+  title={loop ? 'Bucle activo' : 'Bucle inactivo'}
 >
-  <Repeat size={12} />
-  <span>∞</span>
-</div>
+  <Repeat size={16} />
+</button>

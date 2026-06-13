@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ArrowLeft, Sliders, ShieldCheck, Music } from 'lucide-svelte';
+  import { X, Sliders, ShieldCheck, Music } from 'lucide-svelte';
   import ThemeSelector from '../lib/components/ThemeSelector.svelte';
   import WaveAudioRow from '../lib/components/WaveAudioRow.svelte';
   import FileModal from '../lib/components/FileModal.svelte';
@@ -8,12 +8,17 @@
   import { WAVE_CATEGORIES } from '../lib/data/waves';
   import { settingsStore } from '../lib/stores/settingsStore.svelte';
   import { playerController } from '../lib/services/playerController';
+  import { getCurrentWindow } from '@tauri-apps/api/window';
 
   interface Props {
-    onChangeView: (view: 'main' | 'settings') => void;
+    onBack: () => void;
   }
 
-  let { onChangeView }: Props = $props();
+  let { onBack }: Props = $props();
+
+  async function minimize() {
+    await getCurrentWindow().minimize();
+  }
 
   let activeModalWave = $state<{ id: string; name: string } | null>(null);
 
@@ -39,18 +44,25 @@
 </script>
 
 <div class="settings-view bg-surface">
-  <!-- Cabecera de configuración -->
-  <header class="settings-header">
+  <!-- Cabecera de configuración (drag region para mover la ventana) -->
+  <header class="settings-header" data-tauri-drag-region>
     <button
       type="button"
       class="back-btn"
-      onclick={() => onChangeView('main')}
-      aria-label="Volver a la vista principal"
+      onclick={onBack}
+      aria-label="Cerrar configuración"
     >
-      <ArrowLeft size={18} />
-      <span>Atrás</span>
+      <X size={16} />
+      <span>Cerrar</span>
     </button>
-    <h1 class="settings-title">Configuración</h1>
+    <h1 class="settings-title" data-tauri-drag-region>Configuración</h1>
+    <button
+      type="button"
+      class="minimize-btn"
+      onclick={minimize}
+      aria-label="Minimizar ventana"
+      title="Minimizar"
+    >—</button>
   </header>
 
   <!-- Contenedor scrollable de ajustes -->
@@ -131,6 +143,7 @@
     padding: 0 var(--space-5);
     border-bottom: 1px solid var(--color-border);
     flex-shrink: 0;
+    user-select: none;
   }
 
   .back-btn {
@@ -160,9 +173,32 @@
   }
 
   .settings-title {
+    flex: 1;
     font-family: var(--font-ui);
     font-size: var(--text-h2);
     font-weight: 700;
+    color: var(--color-ink);
+  }
+
+  .minimize-btn {
+    font-family: var(--font-ui);
+    font-size: var(--text-h2);
+    font-weight: 400;
+    color: var(--color-mut);
+    background: none;
+    border: none;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+  }
+
+  .minimize-btn:hover {
+    background-color: var(--color-line);
     color: var(--color-ink);
   }
 

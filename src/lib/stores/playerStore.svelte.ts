@@ -33,6 +33,10 @@ class PlayerStore {
   setErrorMessage(message: string | null) {
     this.errorMessage = message;
   }
+
+  toggleLoop() {
+    this.loop = !this.loop;
+  }
 }
 
 export const playerStore = new PlayerStore();

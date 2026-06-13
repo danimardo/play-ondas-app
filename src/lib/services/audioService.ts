@@ -9,6 +9,7 @@ class AudioService {
   #currentWaveId: WaveId | null = null;
   #operationId: string | null = null;
   #volume = 0.75; // 0.0 to 1.0
+  #loop = true;
 
   get operationId() {
     return this.#operationId;
@@ -22,7 +23,7 @@ class AudioService {
     logger.info('audio.playback.started', {
       waveId,
       audioSource: source === 'custom' ? 'custom' : 'default',
-      loop: true,
+      loop: this.#loop,
     }, this.#operationId);
 
     try {
@@ -32,7 +33,7 @@ class AudioService {
 
       const audioUrl = convertFileSrc(filePath);
       this.#audio = new Audio(audioUrl);
-      this.#audio.loop = true;
+      this.#audio.loop = this.#loop;
       this.#audio.volume = this.#volume;
       this.#currentWaveId = waveId;
 
@@ -87,6 +88,13 @@ class AudioService {
     this.#volume = volume100 / 100;
     if (this.#audio) {
       this.#audio.volume = this.#volume;
+    }
+  }
+
+  setLoop(loop: boolean) {
+    this.#loop = loop;
+    if (this.#audio) {
+      this.#audio.loop = loop;
     }
   }
 

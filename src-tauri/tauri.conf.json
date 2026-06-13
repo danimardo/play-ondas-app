@@ -12,12 +12,24 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "Play Ondas app",
         "width": 900,
         "height": 620,
         "minWidth": 720,
         "minHeight": 560,
         "decorations": false
+      },
+      {
+        "label": "settings",
+        "title": "Configuración — Play Ondas",
+        "width": 680,
+        "height": 820,
+        "minWidth": 680,
+        "minHeight": 820,
+        "decorations": false,
+        "visible": false,
+        "resizable": false
       }
     ],
     "security": {

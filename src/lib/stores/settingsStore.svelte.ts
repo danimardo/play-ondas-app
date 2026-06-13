@@ -176,6 +176,18 @@ class SettingsStore {
     }
   }
 
+  async reloadSettings() {
+    if (!this.#initialized) return;
+    try {
+      const result = await loadSettings();
+      if (result.ok) {
+        this.#current = result.settings;
+      }
+    } catch {
+      // Recarga no crítica; ignoramos el error
+    }
+  }
+
   setCustomAudio(waveId: keyof UserSettings['customAudio'], filename: string | null) {
     this.#current = {
       ...this.#current,
