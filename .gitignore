@@ -1,6 +1,9 @@
 # Logs de desarrollo (recreados en cada arranque)
 .logs/
 
+# Capturas/scratch de diagnóstico
+logs/
+
 # Dependencias
 node_modules/
 

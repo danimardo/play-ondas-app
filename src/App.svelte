@@ -9,7 +9,7 @@
   import { playerStore } from './lib/stores/playerStore.svelte';
   import { downloadStore } from './lib/stores/downloadStore.svelte';
   import { playerController } from './lib/services/playerController';
-  import { WaveId } from './lib/schemas/waveSchema';
+  import type { WaveId } from './lib/schemas/waveSchema';
 
   import WaveList from './lib/components/WaveList.svelte';
   import Waveform from './lib/components/Waveform.svelte';
@@ -216,7 +216,7 @@
     />
   {/if}
 {:else}
-  <div class="w-win-w h-win-h flex items-center justify-center bg-bg font-sans text-body text-mut">
+  <div class="h-screen w-screen flex items-center justify-center bg-bg font-sans text-body text-mut">
     Cargando aplicación...
   </div>
 {/if}

@@ -1,7 +1,23 @@
 pub mod layer;
 pub mod bridge;
 
+use std::path::PathBuf;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+
+/// Directorio de logs en desarrollo: `<raíz del repo>/.logs`.
+///
+/// Se deriva de `CARGO_MANIFEST_DIR` (= `src-tauri/`) subiendo un nivel, de modo
+/// que los ficheros siempre se escriben en la raíz del proyecto (`.logs/app.log`,
+/// `.logs/app.jsonl`) independientemente del working directory del proceso, que
+/// con `tauri dev`/`cargo run` es `src-tauri/`. En producción se usa stdout.
+pub fn dev_logs_dir() -> PathBuf {
+    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    manifest_dir
+        .parent()
+        .map(|p| p.to_path_buf())
+        .unwrap_or(manifest_dir)
+        .join(".logs")
+}
 
 pub fn init_logger() {
     let is_dev = cfg!(debug_assertions);

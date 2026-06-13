@@ -33,10 +33,11 @@ pub fn log_client_event(is_dev: bool, level: &str, event: &str, context: serde_j
   };
 
   if is_dev {
+    let dir = crate::logging::dev_logs_dir();
     if let Ok(mut file) = OpenOptions::new()
       .create(true)
       .append(true)
-      .open(".logs/app.jsonl")
+      .open(dir.join("app.jsonl"))
     {
       let _ = writeln!(file, "{}", serialized);
     }
@@ -44,7 +45,7 @@ pub fn log_client_event(is_dev: bool, level: &str, event: &str, context: serde_j
     if let Ok(mut file) = OpenOptions::new()
       .create(true)
       .append(true)
-      .open(".logs/app.log")
+      .open(dir.join("app.log"))
     {
       let _ = writeln!(file, "[{}] [{}] [client] {}: {:?}", local_time_str, level, event, log_entry["context"]);
     }

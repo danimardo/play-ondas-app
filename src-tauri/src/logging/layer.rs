@@ -12,10 +12,11 @@ pub struct JsonLineLoggerLayer {
 impl JsonLineLoggerLayer {
     pub fn new(is_dev: bool) -> Self {
         if is_dev {
-            // Ensure logs directory exists and truncate the app.jsonl file
-            let _ = std::fs::create_dir_all(".logs");
-            let _ = std::fs::write(".logs/app.jsonl", "");
-            let _ = std::fs::write(".logs/app.log", "");
+            // Ensure logs directory exists (en la raíz del repo) and truncate both files
+            let dir = super::dev_logs_dir();
+            let _ = std::fs::create_dir_all(&dir);
+            let _ = std::fs::write(dir.join("app.jsonl"), "");
+            let _ = std::fs::write(dir.join("app.log"), "");
         }
         Self { is_dev }
     }
@@ -43,10 +44,11 @@ impl JsonLineLoggerLayer {
         };
 
         if self.is_dev {
+            let dir = super::dev_logs_dir();
             if let Ok(mut file) = OpenOptions::new()
                 .create(true)
                 .append(true)
-                .open(".logs/app.jsonl")
+                .open(dir.join("app.jsonl"))
             {
                 let _ = writeln!(file, "{}", serialized);
             }
@@ -55,7 +57,7 @@ impl JsonLineLoggerLayer {
             if let Ok(mut file) = OpenOptions::new()
                 .create(true)
                 .append(true)
-                .open(".logs/app.log")
+                .open(dir.join("app.log"))
             {
                 let _ = writeln!(file, "[{}] [{}] [{}] {}: {:?}", local_time_str, level_str, process, event_str, log_entry["context"]);
             }

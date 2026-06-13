@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { WaveCategory } from '../schemas/waveSchema';
+  import type { WaveCategory } from '../schemas/waveSchema';
   
   interface Props {
     wave: WaveCategory;

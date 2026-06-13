@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Snippet } from 'svelte';
+  import type { Snippet } from 'svelte';
   import TopBar from './TopBar.svelte';
   
   interface Props {
@@ -13,7 +13,7 @@
   let { view, onChangeView, sidebar, content, controls }: Props = $props();
 </script>
 
-<div class="w-win-w h-win-h min-w-[720px] min-h-[560px] flex flex-col bg-bg text-ink overflow-hidden border border-border rounded-lg shadow-window">
+<div class="h-screen w-screen flex flex-col bg-bg text-ink overflow-hidden">
   <!-- Top Header -->
   <TopBar {view} {onChangeView} />
 
