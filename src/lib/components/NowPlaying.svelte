@@ -8,6 +8,7 @@
   );
 
   const isPlaying = $derived(playerStore.playbackStatus === 'playing');
+  const isStopped = $derived(playerStore.playbackStatus === 'stopped');
 
   const audioSourceLabel = $derived(
     playerStore.currentAudioSource === 'custom'
@@ -69,9 +70,9 @@
               --waveform-min: {(baseH / 100 * 0.58).toFixed(3)};
               --waveform-dur: {600 + (i % 8) * 90}ms;
               --waveform-delay: {i * 50}ms;
-              transform: scaleY({isPlaying ? 1 : (baseH / 100 * 0.82).toFixed(3)});
-              transition: transform 0.4s ease, opacity 0.3s ease;
-              opacity: {isPlaying ? 1 : 0.6};
+              transform: scaleY({isStopped ? 0.04 : isPlaying ? 1 : (baseH / 100 * 0.82).toFixed(3)});
+              transition: transform 0.5s ease, opacity 0.4s ease;
+              opacity: {isStopped ? 0.35 : isPlaying ? 1 : 0.6};
             "
           ></div>
         {/each}

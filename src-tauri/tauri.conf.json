@@ -14,8 +14,8 @@
       {
         "label": "main",
         "title": "Play Ondas app",
-        "width": 900,
-        "height": 620,
+        "width": 986,
+        "height": 560,
         "minWidth": 720,
         "minHeight": 560,
         "decorations": false
@@ -24,9 +24,9 @@
         "label": "settings",
         "title": "Configuración — Play Ondas",
         "width": 680,
-        "height": 820,
+        "height": 880,
         "minWidth": 680,
-        "minHeight": 820,
+        "minHeight": 880,
         "decorations": false,
         "visible": false,
         "resizable": false

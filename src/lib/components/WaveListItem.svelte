@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { WaveCategory } from '../schemas/waveSchema';
+  import { playerStore } from '../stores/playerStore.svelte';
 
   interface Props {
     wave: WaveCategory;
@@ -9,13 +10,17 @@
 
   let { wave, isSelected, onSelect }: Props = $props();
 
-  // Tinte suave del color de la onda para el fondo seleccionado
-  const tintBg = $derived(
-    isSelected ? `${wave.color}18` : 'transparent'
-  );
-  const borderColor = $derived(
-    isSelected ? wave.color : 'transparent'
-  );
+  const tintBg = $derived(isSelected ? `${wave.color}18` : 'transparent');
+  const borderColor = $derived(isSelected ? wave.color : 'transparent');
+
+  const statusLabel = $derived.by(() => {
+    if (!isSelected) return null;
+    switch (playerStore.playbackStatus) {
+      case 'playing': return { text: 'LIVE',   dot: true  };
+      case 'paused':  return { text: 'PAUSA',  dot: false };
+      default:        return null;
+    }
+  });
 </script>
 
 <button
@@ -41,13 +46,15 @@
     </div>
   </div>
 
-  {#if isSelected}
+  {#if statusLabel}
     <span
       class="font-mono text-micro font-bold tracking-widest uppercase flex items-center gap-1"
       style="color: {wave.color};"
     >
-      <span class="w-1.5 h-1.5 rounded-full inline-block" style="background-color: {wave.color};"></span>
-      LIVE
+      {#if statusLabel.dot}
+        <span class="w-1.5 h-1.5 rounded-full inline-block" style="background-color: {wave.color};"></span>
+      {/if}
+      {statusLabel.text}
     </span>
   {/if}
 </button>

@@ -21,7 +21,8 @@
   }
 
   async function close() {
-    await getCurrentWindow().close();
+    // Delega al handler de cierre de App.svelte, que gestiona bandeja y diálogo según preferencias
+    await getCurrentWindow().emit('window:close-requested');
   }
 
   async function openSettingsWindow() {
@@ -60,7 +61,7 @@
     </span>
   </div>
 
-  <!-- Derecha: Tema, Minimizar, Configuración -->
+  <!-- Derecha: Tema, Configuración -->
   <div class="flex items-center gap-1">
     <button
       class="px-2.5 py-1 rounded-md font-mono text-caption text-mut hover:text-ink hover:bg-line transition-colors cursor-pointer"
@@ -69,15 +70,6 @@
       title="Cambiar tema"
     >
       Tema · {themeLabels[settingsStore.theme]}
-    </button>
-
-    <button
-      class="w-7 h-7 flex items-center justify-center rounded-md font-mono text-label text-mut hover:text-ink hover:bg-line transition-colors cursor-pointer"
-      onclick={minimize}
-      aria-label="Minimizar ventana"
-      title="Minimizar ventana"
-    >
-      —
     </button>
 
     <button

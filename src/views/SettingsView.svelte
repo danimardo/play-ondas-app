@@ -46,23 +46,23 @@
 <div class="settings-view bg-surface">
   <!-- Cabecera de configuración (drag region para mover la ventana) -->
   <header class="settings-header" data-tauri-drag-region>
-    <button
-      type="button"
-      class="back-btn"
-      onclick={onBack}
-      aria-label="Cerrar configuración"
-    >
-      <X size={16} />
-      <span>Cerrar</span>
-    </button>
     <h1 class="settings-title" data-tauri-drag-region>Configuración</h1>
-    <button
-      type="button"
-      class="minimize-btn"
-      onclick={minimize}
-      aria-label="Minimizar ventana"
-      title="Minimizar"
-    >—</button>
+    <div class="header-actions">
+      <button
+        type="button"
+        class="wm-btn"
+        onclick={minimize}
+        aria-label="Minimizar ventana"
+        title="Minimizar"
+      >—</button>
+      <button
+        type="button"
+        class="wm-btn"
+        onclick={onBack}
+        aria-label="Cerrar configuración"
+        title="Cerrar"
+      ><X size={14} /></button>
+    </div>
   </header>
 
   <!-- Contenedor scrollable de ajustes -->
@@ -146,32 +146,6 @@
     user-select: none;
   }
 
-  .back-btn {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    font-family: var(--font-ui);
-    font-size: var(--text-label);
-    font-weight: 500;
-    color: var(--color-ink-2);
-    background: none;
-    border: 1px solid var(--color-btn-border);
-    border-radius: var(--radius-sm);
-    padding: var(--space-2) var(--space-3);
-    cursor: pointer;
-    transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
-  }
-
-  .back-btn:hover {
-    background-color: var(--color-line);
-    color: var(--color-ink);
-  }
-
-  .back-btn:focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 2px;
-  }
-
   .settings-title {
     flex: 1;
     font-family: var(--font-ui);
@@ -180,9 +154,15 @@
     color: var(--color-ink);
   }
 
-  .minimize-btn {
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+
+  .wm-btn {
     font-family: var(--font-ui);
-    font-size: var(--text-h2);
+    font-size: var(--text-body);
     font-weight: 400;
     color: var(--color-mut);
     background: none;
@@ -197,9 +177,14 @@
     transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
   }
 
-  .minimize-btn:hover {
+  .wm-btn:hover {
     background-color: var(--color-line);
     color: var(--color-ink);
+  }
+
+  .wm-btn:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
   }
 
   .settings-content {

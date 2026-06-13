@@ -23,7 +23,7 @@
         type="checkbox"
         checked={settingsStore.minimizeToTrayOnClose}
         onchange={handleMinimizeToggle}
-        class="w-4 h-4 rounded border-border text-accent focus:ring-accent bg-surface"
+        class="tray-checkbox"
       />
       <div class="flex flex-col">
         <span class="font-sans text-body-sm font-semibold text-ink">Minimizar a la bandeja al cerrar</span>
@@ -36,7 +36,7 @@
         type="checkbox"
         checked={settingsStore.startMinimized}
         onchange={handleStartMinimizedToggle}
-        class="w-4 h-4 rounded border-border text-accent focus:ring-accent bg-surface"
+        class="tray-checkbox"
       />
       <div class="flex flex-col">
         <span class="font-sans text-body-sm font-semibold text-ink">Iniciar minimizado</span>
@@ -45,3 +45,16 @@
     </label>
   </div>
 {/if}
+
+<style>
+  .tray-checkbox {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    border-radius: 4px;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+    accent-color: var(--color-accent);
+    cursor: pointer;
+  }
+</style>
