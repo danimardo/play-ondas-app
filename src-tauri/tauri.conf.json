@@ -1,0 +1,45 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "play-ondas-app",
+  "version": "0.1.0",
+  "identifier": "com.mardomingo.play-ondas-app",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "pnpm build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Play Ondas app",
+        "width": 900,
+        "height": 620,
+        "minWidth": 720,
+        "minHeight": 560
+      }
+    ],
+    "security": {
+      "csp": null,
+      "assetProtocol": {
+        "scope": [
+          "$APPDATA/play-ondas-app/**",
+          "$RESOURCE/audio/**"
+        ]
+      }
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "publisher": "Daniel Diez Mardomingo",
+    "icon": [
+      "icons/icon-32.png",
+      "icons/icon-128.png",
+      "icons/icon-256.png",
+      "icons/icon-512.png",
+      "icons/icon.ico",
+      "icons/icon.icns"
+    ]
+  }
+}
