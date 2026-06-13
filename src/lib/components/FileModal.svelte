@@ -266,7 +266,8 @@
     gap: var(--space-2);
   }
 
-  .error-icon {
+  /* :global porque la clase se aplica al <svg> de un icono lucide (componente hijo) */
+  :global(.error-icon) {
     color: var(--color-error);
     margin-top: 1px;
     flex-shrink: 0;
@@ -329,7 +330,7 @@
     opacity: 0.9;
   }
 
-  .animate-spin {
+  :global(.animate-spin) {
     animation: spin 1s linear infinite;
   }
 

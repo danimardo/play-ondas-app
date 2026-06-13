@@ -49,12 +49,16 @@ export default defineConfig({
         "**/*.spec.ts",
         "**/*.test.ts",
         "**/*.svelte",
+        "**/*.d.ts",
         "vite.config.ts",
         "src/main.ts",
         "play-ondas-app-design/**",
         "src/lib/server/**",
         "src/lib/schemas/audioMetaSchema.ts",
-        "**/*api-script*"
+        "**/*api-script*",
+        "**/src-tauri/**",
+        "**/codegen-assets/**",
+        "**/*codegen*"
       ],
       thresholds: {
         global: {

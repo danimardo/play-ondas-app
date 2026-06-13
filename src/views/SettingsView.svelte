@@ -193,7 +193,8 @@
     letter-spacing: 0.05em;
   }
 
-  .section-icon {
+  /* :global porque la clase se aplica al <svg> de un icono lucide (componente hijo) */
+  :global(.section-icon) {
     color: var(--color-mut);
   }
 

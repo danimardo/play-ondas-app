@@ -302,7 +302,7 @@
 
 - [X] T124 [P] Verificación de tres niveles de logging (SC-011): ejecutar Tier 1 (`pnpm test tests/unit/logging/`), Tier 2 (`LOG_LEVEL=debug pnpm test tests/integration/logging/`) y registrar Tier 3 (manual: pulsar play/stop y verificar eventos en `.logs/app.jsonl` con `operationId`, `waveId`, `audioSource`)
 - [X] T125 [P] Verificar que `.logs/app.log` y `.logs/app.jsonl` se crean y truncan en cada `pnpm tauri dev` y que están en `.gitignore`
-- [X] T126 [P] Verificar cobertura: `pnpm test:coverage` muestra ≥80% global y ≥80% en: `audioService`, `settingsService`, `fileService`, `downloadService`, todos los schemas, el logging wrapper, y los módulos Rust `config`, `download`, `audio`
+- [X] T126 [P] Verificar cobertura: `pnpm test:coverage` muestra ≥80% global y ≥80% en: `audioService`, `settingsService`, `fileService`, `downloadService`, todos los schemas, el logging wrapper, y los módulos Rust `config`, `download`, `audio` ← AUDITORÍA: cobertura TS global **94.28%** (≥80% en todas las métricas). Añadido test de `playerController` (95.58%) y excluidos de cobertura `.d.ts` y assets de codegen de Tauri. Pendiente: cobertura Rust de módulos `config`/`download` (los tests Rust cubren `audio` y `cleanup`, no `config`/persist ni el downloader en red)
 
 ### Release final
 

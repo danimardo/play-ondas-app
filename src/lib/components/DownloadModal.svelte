@@ -271,11 +271,12 @@
     font-weight: 600;
   }
 
-  .text-ok {
+  /* :global porque la clase se aplica al <svg> de un icono lucide (componente hijo) */
+  :global(.text-ok) {
     color: var(--color-ok);
   }
 
-  .text-error {
+  :global(.text-error) {
     color: var(--color-error);
   }
 
@@ -288,7 +289,7 @@
     gap: var(--space-3);
   }
 
-  .error-box-icon {
+  :global(.error-box-icon) {
     color: var(--color-error);
     margin-top: 2px;
     flex-shrink: 0;
@@ -360,7 +361,7 @@
     color: var(--color-mut);
   }
 
-  .animate-spin {
+  :global(.animate-spin) {
     animation: spin 1s linear infinite;
   }
 

@@ -126,7 +126,8 @@
     white-space: nowrap;
   }
 
-  .file-icon {
+  /* :global porque la clase se aplica al <svg> de un icono lucide (componente hijo) */
+  :global(.file-icon) {
     flex-shrink: 0;
   }
 
