@@ -23,6 +23,11 @@ export const UserSettingsSchema = z.object({
   startMinimized: z.boolean(),
   closeDialogSeen: z.boolean(),
   customAudio: CustomAudioMapSchema,
+  // Window geometry (optional — absent in older settings files)
+  windowX: z.number().int().optional(),
+  windowY: z.number().int().optional(),
+  windowWidth: z.number().int().optional(),
+  windowHeight: z.number().int().optional(),
 });
 export type UserSettings = z.infer<typeof UserSettingsSchema>;
 

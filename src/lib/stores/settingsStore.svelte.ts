@@ -90,6 +90,15 @@ class SettingsStore {
     return this.#current.customAudio;
   }
 
+  get windowX() { return this.#current.windowX; }
+  set windowX(value) { this.#current = { ...this.#current, windowX: value }; }
+  get windowY() { return this.#current.windowY; }
+  set windowY(value) { this.#current = { ...this.#current, windowY: value }; }
+  get windowWidth() { return this.#current.windowWidth; }
+  set windowWidth(value) { this.#current = { ...this.#current, windowWidth: value }; }
+  get windowHeight() { return this.#current.windowHeight; }
+  set windowHeight(value) { this.#current = { ...this.#current, windowHeight: value }; }
+
   async initSettings() {
     if (this.#initialized) return;
     try {
@@ -124,6 +133,10 @@ class SettingsStore {
             const minimizeToTrayOnClose = this.minimizeToTrayOnClose;
             const startMinimized = this.startMinimized;
             const closeDialogSeen = this.closeDialogSeen;
+            const windowX = this.windowX;
+            const windowY = this.windowY;
+            const windowWidth = this.windowWidth;
+            const windowHeight = this.windowHeight;
             const customAudio = {
               gamma: this.customAudio.gamma,
               beta: this.customAudio.beta,
@@ -141,7 +154,11 @@ class SettingsStore {
               minimizeToTrayOnClose,
               startMinimized,
               closeDialogSeen,
-              customAudio
+              customAudio,
+              windowX,
+              windowY,
+              windowWidth,
+              windowHeight,
             };
 
             const timer = setTimeout(() => {

@@ -146,8 +146,9 @@
     border-top: 1px solid var(--color-line);
     display: flex;
     justify-content: flex-end;
+    align-items: center;
     gap: var(--space-3);
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
   }
 
   .action-btn {

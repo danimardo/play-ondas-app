@@ -12,7 +12,6 @@
   import type { WaveId } from './lib/schemas/waveSchema';
 
   import WaveList from './lib/components/WaveList.svelte';
-  import Waveform from './lib/components/Waveform.svelte';
   import TransportControls from './lib/components/TransportControls.svelte';
   import VolumeSlider from './lib/components/VolumeSlider.svelte';
   import LoopIndicator from './lib/components/LoopIndicator.svelte';
@@ -20,6 +19,7 @@
   import CloseToTrayDialog from './lib/components/CloseToTrayDialog.svelte';
   import { isTrayAvailable, sendTrayAction } from './lib/services/trayService';
   import { getCurrentWindow } from '@tauri-apps/api/window';
+  import { PhysicalPosition, PhysicalSize } from '@tauri-apps/api/dpi';
   import { listen } from '@tauri-apps/api/event';
 
   let currentView = $state<'main' | 'settings'>('main');
@@ -28,6 +28,7 @@
   let showCloseDialog = $state(false);
   let trayAvailable = $state(false);
   let unlistens: (() => void)[] = [];
+  let windowStateTimer: ReturnType<typeof setTimeout> | null = null;
 
   // Atajos de teclado (FR-013): Play = Ctrl+Shift+P, Pausa = Ctrl+Shift+X, Stop = Ctrl+Shift+S
   function handleKeyDown(e: KeyboardEvent) {
@@ -45,10 +46,22 @@
     }
   }
 
-  // Reactivamente aplicamos y escuchamos el tema elegido
+  // Guarda la posición y tamaño de ventana con debounce
+  function scheduleWindowStateSave() {
+    if (windowStateTimer) clearTimeout(windowStateTimer);
+    windowStateTimer = setTimeout(async () => {
+      const win = getCurrentWindow();
+      const pos = await win.outerPosition();
+      const size = await win.outerSize();
+      settingsStore.windowX = pos.x;
+      settingsStore.windowY = pos.y;
+      settingsStore.windowWidth = size.width;
+      settingsStore.windowHeight = size.height;
+    }, 500);
+  }
+
+  // Tema reactivo — sin guard de isReady para que aplique antes de mostrar la ventana
   $effect(() => {
-    if (!isReady) return;
-    // Suscripción reactiva al tema seleccionado
     void settingsStore.theme;
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
@@ -84,7 +97,6 @@
   }
 
   onMount(async () => {
-    // Atajos de teclado globales
     window.addEventListener('keydown', handleKeyDown);
 
     // Bootstrap de configuración y sincronización con el reproductor
@@ -94,18 +106,29 @@
     // Comprobar bandeja
     trayAvailable = await isTrayAvailable();
 
-    // Si la app está configurada para iniciar minimizada, la ocultamos inmediatamente
+    // Restaurar geometría de ventana guardada
+    const win = getCurrentWindow();
+    if (
+      settingsStore.windowX !== undefined &&
+      settingsStore.windowY !== undefined &&
+      settingsStore.windowWidth !== undefined &&
+      settingsStore.windowHeight !== undefined
+    ) {
+      await win.setPosition(new PhysicalPosition(settingsStore.windowX, settingsStore.windowY));
+      await win.setSize(new PhysicalSize(settingsStore.windowWidth, settingsStore.windowHeight));
+    }
+
+    isReady = true;
+
+    // Mantener oculta si startMinimized
     if (trayAvailable && settingsStore.startMinimized) {
-      const win = getCurrentWindow();
       await win.hide();
     }
 
-    // Si hubo un error en la carga (configuración corrupta), mostramos el toast
     if (settingsStore.error) {
       showErrorToast = true;
     }
 
-    // Comprobamos si faltan archivos de audio por descargar (primer arranque)
     const missing = await downloadStore.checkMissingFiles();
     if (missing.length > 0) {
       downloadStore.startDownload();
@@ -120,7 +143,6 @@
 
       if (settingsStore.minimizeToTrayOnClose) {
         if (settingsStore.closeDialogSeen) {
-          const win = getCurrentWindow();
           await win.hide();
         } else {
           showCloseDialog = true;
@@ -144,11 +166,15 @@
     });
     unlistens.push(unlistenTray);
 
-    isReady = true;
+    // Persistir posición y tamaño de ventana al mover/redimensionar
+    const unlistenMove = await win.onMoved(() => scheduleWindowStateSave());
+    const unlistenResize = await win.onResized(() => scheduleWindowStateSave());
+    unlistens.push(unlistenMove, unlistenResize);
   });
 
   onDestroy(() => {
     window.removeEventListener('keydown', handleKeyDown);
+    if (windowStateTimer) clearTimeout(windowStateTimer);
     for (const u of unlistens) {
       u();
     }
@@ -174,12 +200,10 @@
 
     {#snippet controls()}
       <div class="flex items-center justify-between w-full h-full">
-        <!-- Waveform left -->
-        <div class="w-1/3 flex items-center justify-start">
-          <Waveform />
-        </div>
+        <!-- Espacio izquierdo vacío (alineación) -->
+        <div class="w-1/3"></div>
 
-        <!-- Controls center -->
+        <!-- Controles de transporte centrados -->
         <div class="w-1/3 flex items-center justify-center">
           <TransportControls
             onPlay={() => playerController.play()}
@@ -189,10 +213,10 @@
           />
         </div>
 
-        <!-- Volume & Loop right -->
+        <!-- Volumen + Bucle a la derecha -->
         <div class="w-1/3 flex items-center justify-end gap-4">
-          <LoopIndicator />
           <VolumeSlider onChangeVolume={(vol) => playerController.setVolume(vol)} />
+          <LoopIndicator />
         </div>
       </div>
     {/snippet}
@@ -217,6 +241,6 @@
   {/if}
 {:else}
   <div class="h-screen w-screen flex items-center justify-center bg-bg font-sans text-body text-mut">
-    Cargando aplicación...
+    Cargando…
   </div>
 {/if}
