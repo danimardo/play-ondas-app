@@ -8,7 +8,7 @@ import { nanoid } from '../logging/nanoid';
 
 const INITIAL_PROGRESS: GlobalDownloadProgress = {
   currentFileIndex: 0,
-  totalFiles: 5,
+  totalFiles: 10,
   totalBytesDownloaded: 0,
   totalBytesEstimated: 0,
   globalProgressPercent: 0,

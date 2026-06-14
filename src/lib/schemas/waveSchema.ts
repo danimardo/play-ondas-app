@@ -4,8 +4,13 @@ export const WaveIdSchema = z.enum([
   'gamma',
   'beta',
   'alfa',
-  'theta-delta',
+  'theta',
+  'delta',
   'brown-noise',
+  'white-noise',
+  'pink-noise',
+  'green-noise',
+  'fireplace',
 ]);
 
 export type WaveId = z.infer<typeof WaveIdSchema>;

@@ -11,7 +11,13 @@ pub enum WaveId {
     Gamma,
     Beta,
     Alfa,
-    ThetaDelta,
+    Theta,
+    Delta,
     BrownNoise,
+    WhiteNoise,
+    PinkNoise,
+    GreenNoise,
+    Fireplace,
 }
-// Serializes to: "gamma", "beta", "alfa", "theta-delta", "brown-noise"
+// Serializes to: "gamma", "beta", "alfa", "theta", "delta",
+//                "brown-noise", "white-noise", "pink-noise", "green-noise", "fireplace"

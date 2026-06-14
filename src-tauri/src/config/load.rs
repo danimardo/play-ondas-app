@@ -17,8 +17,13 @@ pub fn load_settings_file(target_path: &Path) -> serde_json::Value {
             "gamma": null,
             "beta": null,
             "alfa": null,
-            "theta-delta": null,
-            "brown-noise": null
+            "theta": null,
+            "delta": null,
+            "brown-noise": null,
+            "white-noise": null,
+            "pink-noise": null,
+            "green-noise": null,
+            "fireplace": null
         }
     });
 

@@ -33,8 +33,13 @@ pub fn copy_audio_file(
         WaveId::Gamma => "gamma",
         WaveId::Beta => "beta",
         WaveId::Alfa => "alfa",
-        WaveId::ThetaDelta => "theta-delta",
+        WaveId::Theta => "theta",
+        WaveId::Delta => "delta",
         WaveId::BrownNoise => "brown-noise",
+        WaveId::WhiteNoise => "white-noise",
+        WaveId::PinkNoise => "pink-noise",
+        WaveId::GreenNoise => "green-noise",
+        WaveId::Fireplace => "fireplace",
     };
 
     // Carpeta de destino: {appDataDir}/custom/{waveId}/
@@ -71,8 +76,13 @@ pub fn remove_custom_audio_file(
         WaveId::Gamma => "gamma",
         WaveId::Beta => "beta",
         WaveId::Alfa => "alfa",
-        WaveId::ThetaDelta => "theta-delta",
+        WaveId::Theta => "theta",
+        WaveId::Delta => "delta",
         WaveId::BrownNoise => "brown-noise",
+        WaveId::WhiteNoise => "white-noise",
+        WaveId::PinkNoise => "pink-noise",
+        WaveId::GreenNoise => "green-noise",
+        WaveId::Fireplace => "fireplace",
     };
 
     let dest_dir = app_data_dir.join("custom").join(wave_str);

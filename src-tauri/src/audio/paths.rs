@@ -11,8 +11,13 @@ pub fn resolve_audio_path_logic(
         WaveId::Gamma => "gamma",
         WaveId::Beta => "beta",
         WaveId::Alfa => "alfa",
-        WaveId::ThetaDelta => "theta-delta",
+        WaveId::Theta => "theta",
+        WaveId::Delta => "delta",
         WaveId::BrownNoise => "brown-noise",
+        WaveId::WhiteNoise => "white-noise",
+        WaveId::PinkNoise => "pink-noise",
+        WaveId::GreenNoise => "green-noise",
+        WaveId::Fireplace => "fireplace",
     };
 
     // 1. Check custom audio copy: {appDataDir}/play-ondas-app/custom/{waveId}/{custom_file_name}

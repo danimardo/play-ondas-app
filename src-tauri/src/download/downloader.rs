@@ -31,8 +31,22 @@ pub struct GlobalProgress {
     pub files: HashMap<String, FileProgress>,
 }
 
+/// Devuelve el nombre del fichero en el servidor para cada wave ID.
+/// Necesario porque algunos audios tienen nombres distintos en el servidor.
+fn wave_server_filename(wave_id: &str) -> &str {
+    match wave_id {
+        "theta"     => "Theta-waves",
+        "delta"     => "delta-waves",
+        "fireplace" => "fireplace-noise",
+        other       => other,
+    }
+}
+
 pub fn check_audio_files_logic(app_data_dir: &Path) -> Vec<String> {
-    let waves = vec!["gamma", "beta", "alfa", "theta-delta", "brown-noise"];
+    let waves = vec![
+        "gamma", "beta", "alfa", "theta", "delta",
+        "brown-noise", "white-noise", "pink-noise", "green-noise", "fireplace",
+    ];
     let mut missing_waves = Vec::new();
 
     let defaults_dir = app_data_dir.join("defaults");
@@ -115,7 +129,7 @@ pub async fn download_audio_files(
 
         global_progress.current_file_index = index;
 
-        let url = format!("https://files.mardomingo.com/audios/{}.mp3", wave_id);
+        let url = format!("https://files.mardomingo.com/audios/{}.mp3", wave_server_filename(wave_id));
         
         // Actualizamos estado de archivo actual a downloading
         if let Some(file_prog) = global_progress.files.get_mut(wave_id) {

@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "play-ondas-app",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "identifier": "com.mardomingo.play-ondas-app",
   "build": {
     "beforeDevCommand": "pnpm dev",
@@ -59,8 +59,13 @@
       "../audios/gamma.ogg": "audio/gamma.ogg",
       "../audios/beta.ogg": "audio/beta.ogg",
       "../audios/alfa.ogg": "audio/alfa.ogg",
-      "../audios/theta-delta.ogg": "audio/theta-delta.ogg",
-      "../audios/brown-noise.ogg": "audio/brown-noise.ogg"
+      "../audios/Theta-waves.ogg": "audio/theta.ogg",
+      "../audios/delta-waves.ogg": "audio/delta.ogg",
+      "../audios/brown-noise.ogg": "audio/brown-noise.ogg",
+      "../audios/white-noise.ogg": "audio/white-noise.ogg",
+      "../audios/pink-noise.ogg": "audio/pink-noise.ogg",
+      "../audios/green-noise.ogg": "audio/green-noise.ogg",
+      "../audios/fireplace-noise.ogg": "audio/fireplace.ogg"
     }
   }
 }

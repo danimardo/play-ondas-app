@@ -149,8 +149,13 @@ class SettingsStore {
               gamma: this.customAudio.gamma,
               beta: this.customAudio.beta,
               alfa: this.customAudio.alfa,
-              'theta-delta': this.customAudio['theta-delta'],
-              'brown-noise': this.customAudio['brown-noise']
+              theta: this.customAudio.theta,
+              delta: this.customAudio.delta,
+              'brown-noise': this.customAudio['brown-noise'],
+              'white-noise': this.customAudio['white-noise'],
+              'pink-noise': this.customAudio['pink-noise'],
+              'green-noise': this.customAudio['green-noise'],
+              fireplace: this.customAudio.fireplace,
             };
 
             const settingsSnapshot: UserSettings = {
@@ -215,8 +220,13 @@ class SettingsStore {
         gamma: this.customAudio.gamma,
         beta: this.customAudio.beta,
         alfa: this.customAudio.alfa,
-        'theta-delta': this.customAudio['theta-delta'],
+        theta: this.customAudio.theta,
+        delta: this.customAudio.delta,
         'brown-noise': this.customAudio['brown-noise'],
+        'white-noise': this.customAudio['white-noise'],
+        'pink-noise': this.customAudio['pink-noise'],
+        'green-noise': this.customAudio['green-noise'],
+        fireplace: this.customAudio.fireplace,
       },
       shortcuts: this.shortcuts,
       skipAudioDownloadOffer: this.skipAudioDownloadOffer,
@@ -257,8 +267,13 @@ class SettingsStore {
     this.#current.customAudio.gamma = null;
     this.#current.customAudio.beta = null;
     this.#current.customAudio.alfa = null;
-    this.#current.customAudio['theta-delta'] = null;
+    this.#current.customAudio.theta = null;
+    this.#current.customAudio.delta = null;
     this.#current.customAudio['brown-noise'] = null;
+    this.#current.customAudio['white-noise'] = null;
+    this.#current.customAudio['pink-noise'] = null;
+    this.#current.customAudio['green-noise'] = null;
+    this.#current.customAudio.fireplace = null;
     this.#current.shortcuts = { ...DEFAULT_SETTINGS.shortcuts };
     this.#current.skipAudioDownloadOffer = DEFAULT_SETTINGS.skipAudioDownloadOffer;
 

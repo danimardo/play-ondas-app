@@ -22,7 +22,7 @@ mod tests {
         let dir = tempdir().unwrap();
         let path = dir.path().join("settings.json");
 
-        let content = r#"{"schemaVersion":"1.0.0","selectedWave":"alfa","volume":42,"theme":"dark","loop":true,"minimizeToTrayOnClose":false,"startMinimized":false,"closeDialogSeen":true,"customAudio":{"gamma":null,"beta":null,"alfa":null,"theta-delta":null,"brown-noise":null}}"#;
+        let content = r#"{"schemaVersion":"1.0.0","selectedWave":"alfa","volume":42,"theme":"dark","loop":true,"minimizeToTrayOnClose":false,"startMinimized":false,"closeDialogSeen":true,"customAudio":{"gamma":null,"beta":null,"alfa":null,"theta":null,"delta":null,"brown-noise":null,"white-noise":null,"pink-noise":null,"green-noise":null,"fireplace":null}}"#;
         persist_settings_file(&path, content).unwrap();
         assert!(path.exists());
 

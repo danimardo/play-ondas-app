@@ -170,7 +170,7 @@
           </button>
         {:else}
           <p class="audio-base-status">
-            <span>{downloadStore.missingFiles.length} de 5 audios pendientes de descarga.</span>
+            <span>{downloadStore.missingFiles.length} de {WAVE_CATEGORIES.length} audios pendientes de descarga.</span>
           </p>
           <button type="button" class="audio-base-btn" onclick={handleDownloadAudios}>
             <Download size={13} />
