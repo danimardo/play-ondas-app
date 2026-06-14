@@ -236,6 +236,7 @@
         const status = await applyShortcuts(shortcuts);
         shortcutStatus = status;
         settingsStore.shortcuts = shortcuts;
+        await settingsStore.persistNow();
       }}
     />
   {:else}

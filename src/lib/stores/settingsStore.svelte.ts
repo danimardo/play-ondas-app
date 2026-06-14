@@ -193,6 +193,37 @@ class SettingsStore {
     }
   }
 
+  /** Persiste el estado actual inmediatamente, sin esperar al debounce de 300ms.
+   *  Usar cuando el cambio debe sobrevivir a un reload de otra ventana (ej. atajos). */
+  async persistNow(): Promise<void> {
+    if (!this.#initialized) return;
+    const snapshot: UserSettings = {
+      schemaVersion: this.#current.schemaVersion,
+      theme: this.theme,
+      selectedWave: this.selectedWave,
+      volume: this.volume,
+      loop: true,
+      minimizeToTrayOnClose: this.minimizeToTrayOnClose,
+      startMinimized: this.startMinimized,
+      closeDialogSeen: this.closeDialogSeen,
+      customAudio: {
+        gamma: this.customAudio.gamma,
+        beta: this.customAudio.beta,
+        alfa: this.customAudio.alfa,
+        'theta-delta': this.customAudio['theta-delta'],
+        'brown-noise': this.customAudio['brown-noise'],
+      },
+      shortcuts: this.shortcuts,
+      windowX: this.windowX,
+      windowY: this.windowY,
+      windowWidth: this.windowWidth,
+      windowHeight: this.windowHeight,
+    };
+    await persistSettings(snapshot).catch((err) => {
+      logger.warn('settings.persist.failed', { errorCode: 'PERSIST_NOW_ERROR', errorMessage: String(err) });
+    });
+  }
+
   setCustomAudio(waveId: keyof UserSettings['customAudio'], filename: string | null) {
     this.#current = {
       ...this.#current,
