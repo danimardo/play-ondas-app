@@ -64,22 +64,52 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: 'Play Ondas app ${{ github.ref_name }}'
           releaseBody: |
-            ## Novedades
+            ## Play Ondas app — Primera versión pública
 
-            Consulta el historial de commits para ver los cambios incluidos en esta versión.
+            Reproductor de audio binaural de escritorio, diseñado con la estética **Aire**.
+
+            ### ¿Qué incluye esta versión?
+
+            **Reproducción de audio binaural**
+            - 5 tipos de onda: Gamma, Beta, Alfa, Theta · Delta y Ruido Marrón
+            - Controles de transporte: Play, Pausa, Stop y bucle continuo
+            - Control de volumen con silencio rápido
+            - Visualizador de forma de onda animado que refleja el estado de reproducción
+
+            **Personalización**
+            - Tema claro, oscuro o automático (sincronizado con el sistema)
+            - Sustituye el audio de cualquier onda por un fichero propio (MP3, WAV, OGG, FLAC)
+            - Atajos de teclado globales configurables — funcionan aunque la app esté minimizada en la bandeja:
+              - `Ctrl+Shift+P` — Reproducir / Pausar
+              - `Ctrl+Shift+X` — Pausar
+              - `Ctrl+Shift+S` — Detener
+
+            **Integración con el sistema**
+            - Icono en la bandeja del sistema (systray) con menú de control rápido
+            - Opción de minimizar a la bandeja al cerrar
+            - Opción de iniciar minimizado
+            - Persistencia de posición y tamaño de ventana entre sesiones
+
+            **Primer arranque**
+            - Descarga automática de los audios de acompañamiento (~45 MB) con barra de progreso
+            - Configuración almacenada localmente; sin cuenta, sin telemetría
+
+            ---
 
             ## Descargar
 
             | Plataforma | Archivo |
             |------------|---------|
-            | Windows 10/11 (x64) | `PlayOndasApp_*_x64_en-US.msi` |
-            | Linux x64 | `play-ondas-app_*_amd64.AppImage` |
+            | Windows 10/11 (x64) | `play-ondas-app_1.0.0_x64_en-US.msi` |
+            | Linux x64 | `play-ondas-app_1.0.0_amd64.AppImage` |
 
-            ### Linux — hacer ejecutable el AppImage
-            ```bash
-            chmod +x play-ondas-app_*.AppImage
-            ./play-ondas-app_*.AppImage
-            ```
+            > **Windows:** ejecuta el `.msi` y sigue el asistente de instalación.
+
+            > **Linux:** descarga el AppImage, dale permisos de ejecución y ábrelo:
+            > ```bash
+            > chmod +x play-ondas-app_*.AppImage
+            > ./play-ondas-app_*.AppImage
+            > ```
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
