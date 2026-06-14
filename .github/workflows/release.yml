@@ -41,9 +41,7 @@ jobs:
           node-version: '24'
 
       - name: Instalar pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 11
+        run: npm install -g pnpm@11
 
       - name: Instalar Rust stable
         uses: dtolnay/rust-toolchain@stable
