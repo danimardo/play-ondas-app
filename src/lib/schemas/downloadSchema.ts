@@ -29,7 +29,7 @@ export const GlobalDownloadProgressSchema = z.object({
   totalBytesEstimated: z.number().nonnegative(),
   globalProgressPercent: z.number().min(0).max(100),
   status: GlobalDownloadStatusSchema,
-  error: z.string().optional(),
+  error: z.string().nullish(),
   // Record parcial: Rust solo envía las ondas que faltan por descargar, no las 5 siempre
   files: z.record(z.string(), FileDownloadProgressSchema),
 });

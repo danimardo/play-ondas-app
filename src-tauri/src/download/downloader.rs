@@ -217,20 +217,30 @@ pub async fn download_audio_files(
             downloaded_bytes += chunk.len() as u64;
             global_progress.total_bytes_downloaded += chunk.len() as u64;
 
-            // Rate limit simple para no saturar el canal Tauri IPC (emitimos progreso cada 128KB descargados)
-            if downloaded_bytes - last_emit_bytes >= 128 * 1024 || downloaded_bytes == total_size {
+            // Emitir progreso cada 32 KB o al terminar el archivo
+            if downloaded_bytes - last_emit_bytes >= 32 * 1024 || (total_size > 0 && downloaded_bytes >= total_size) {
                 last_emit_bytes = downloaded_bytes;
-                
+
+                let file_pct = if total_size > 0 {
+                    ((downloaded_bytes as f64 / total_size as f64) * 100.0) as u8
+                } else {
+                    0
+                };
+
                 if let Some(file_prog) = global_progress.files.get_mut(wave_id) {
                     file_prog.bytes_downloaded = downloaded_bytes;
-                    if total_size > 0 {
-                        file_prog.progress_percent = ((downloaded_bytes as f64 / total_size as f64) * 100.0) as u8;
-                    }
+                    file_prog.progress_percent = file_pct;
                 }
 
-                if global_progress.total_bytes_estimated > 0 {
-                    global_progress.global_progress_percent = ((global_progress.total_bytes_downloaded as f64 / global_progress.total_bytes_estimated as f64) * 100.0) as u8;
-                }
+                // Progreso global basado en ficheros completados + fracción del fichero actual.
+                // Funciona aunque el servidor no devuelva Content-Length.
+                let completed = global_progress.files.values()
+                    .filter(|f| f.status == "completed")
+                    .count() as f64;
+                let total = global_progress.total_files as f64;
+                let current_fraction = file_pct as f64 / 100.0;
+                global_progress.global_progress_percent =
+                    ((completed / total + current_fraction / total) * 100.0).min(99.0) as u8;
 
                 let _ = window.emit("download-progress", global_progress.clone());
             }
