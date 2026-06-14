@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+@import "./tokens.css";
+
+/* Self-hosted fonts via Fontsource */
+@import "@fontsource/hanken-grotesk/400.css";
+@import "@fontsource/hanken-grotesk/500.css";
+@import "@fontsource/hanken-grotesk/600.css";
+@import "@fontsource/hanken-grotesk/700.css";
+@import "@fontsource/space-mono/400.css";
+@import "@fontsource/space-mono/700.css";
+
+/* ============================================================
+   Registro de los tokens Aire en el theme de Tailwind v4.
+   Sin esto, las utilidades personalizadas (bg-bg, text-ink,
+   bg-accent, text-display, accent-accent, bg-dot, …) NO se
+   generan. Los valores literales son los del modo claro; el
+   modo oscuro se aplica porque las utilidades referencian
+   var(--color-*), que tokens.css sobreescribe bajo
+   [data-theme="dark"].
+   ============================================================ */
+@theme {
+  /* Tipografías */
+  --font-sans: "Hanken Grotesk", system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-ui:   "Hanken Grotesk", system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, "Cascadia Code", Menlo, monospace;
+
+  /* Colores semánticos (referenciados por bg-*, text-*, border-*) */
+  --color-bg:          #F6F1E8;
+  --color-surface:     #FCF9F3;
+  --color-list-bg:     #FAF6EF;
+  --color-line:        #F0E9DC;
+  --color-border:      #E7DECF;
+  --color-ink:         #2C2620;
+  --color-ink-2:       #5F574B;
+  --color-mut:         #8A7F70;
+  --color-faint:       #A2917A;
+  --color-accent:      #C77D3A;
+  --color-accent-text: #FFFFFF;
+  --color-track:       #E7DECF;
+  --color-btn-border:  #DCD2C1;
+  --color-knob:        #FFFFFF;
+  --color-dot:         #E2D8C6;
+  --color-error:       #B4472E;
+  --color-ok:          #5BA17A;
+
+  /* Tamaños de texto (text-display, text-h2, …) */
+  --text-display: 32px;
+  --text-h2:      20px;
+  --text-title:   17px;
+  --text-body:    15px;
+  --text-body-sm: 13.5px;
+  --text-label:   13px;
+  --text-caption: 12px;
+  --text-micro:   11px;
+  --text-kicker:  10.5px;
+
+  /* Radios (rounded-pill, …) */
+  --radius-pill: 999px;
+
+  /* Sombras (shadow-window, shadow-modal) */
+  --shadow-window: 0 16px 38px -10px rgba(40, 32, 20, 0.26);
+  --shadow-modal:  0 24px 60px -12px rgba(0, 0, 0, 0.40);
+}
+
+/* Utilidades de tamaño fijo del layout que Tailwind no deriva de un namespace */
+@utility w-list-w { width: 300px; }
+
+/* Base: el documento ocupa toda la ventana y usa la paleta/​tipografía Aire */
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+}
+
+#app {
+  height: 100%;
+}

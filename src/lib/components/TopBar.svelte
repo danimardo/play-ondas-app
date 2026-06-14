@@ -1,0 +1,84 @@
+<script lang="ts">
+  import { getCurrentWindow } from '@tauri-apps/api/window';
+  import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
+  import { settingsStore } from '../stores/settingsStore.svelte';
+  import type { Theme } from '../schemas/settingsSchema';
+
+  const themeLabels: Record<Theme, string> = {
+    auto: 'Auto',
+    light: 'Claro',
+    dark: 'Oscuro',
+  };
+  const themeOrder: Theme[] = ['auto', 'light', 'dark'];
+
+  function cycleTheme() {
+    const idx = themeOrder.indexOf(settingsStore.theme);
+    settingsStore.theme = themeOrder[(idx + 1) % themeOrder.length];
+  }
+
+  async function minimize() {
+    await getCurrentWindow().minimize();
+  }
+
+  async function close() {
+    // Delega al handler de cierre de App.svelte, que gestiona bandeja y diálogo según preferencias
+    await getCurrentWindow().emit('window:close-requested');
+  }
+
+  async function openSettingsWindow() {
+    const win = await WebviewWindow.getByLabel('settings');
+    if (win) {
+      await win.show();
+      await win.setFocus();
+    }
+  }
+</script>
+
+<header
+  data-tauri-drag-region
+  class="h-12 w-full flex items-center justify-between px-4 bg-surface border-b border-border select-none"
+>
+  <!-- Izquierda: dots de ventana + título -->
+  <div class="flex items-center gap-2" data-tauri-drag-region>
+    <!-- Dots de ventana (el primero cierra, el segundo minimiza) -->
+    <div class="flex gap-1.5 mr-2">
+      <button
+        class="w-2.5 h-2.5 rounded-full bg-dot hover:bg-[#FF5F57] transition-colors cursor-pointer"
+        onclick={close}
+        aria-label="Cerrar"
+        title="Cerrar"
+      ></button>
+      <button
+        class="w-2.5 h-2.5 rounded-full bg-dot hover:bg-[#FEBC2E] transition-colors cursor-pointer"
+        onclick={minimize}
+        aria-label="Minimizar"
+        title="Minimizar"
+      ></button>
+      <span class="w-2.5 h-2.5 rounded-full bg-dot block"></span>
+    </div>
+    <span class="font-sans font-bold text-label text-ink tracking-wide" data-tauri-drag-region>
+      Play Ondas <span class="text-accent">app</span>
+    </span>
+  </div>
+
+  <!-- Derecha: Tema, Configuración -->
+  <div class="flex items-center gap-1">
+    <button
+      class="px-2.5 py-1 rounded-md font-mono text-caption text-mut hover:text-ink hover:bg-line transition-colors cursor-pointer"
+      onclick={cycleTheme}
+      aria-label="Cambiar tema"
+      title="Cambiar tema"
+    >
+      Tema · {themeLabels[settingsStore.theme]}
+    </button>
+
+    <button
+      class="px-3 py-1 rounded-md font-sans text-label font-semibold text-ink-2 hover:text-ink hover:bg-line transition-colors cursor-pointer"
+      onclick={openSettingsWindow}
+      aria-label="Configuración"
+      title="Configuración"
+    >
+      Configuración
+    </button>
+  </div>
+</header>

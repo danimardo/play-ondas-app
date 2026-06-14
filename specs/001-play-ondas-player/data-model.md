@@ -154,10 +154,17 @@ export type WaveAudioAssociation = z.infer<typeof WaveAudioAssociationSchema>;
 ```
 
 **Resolution order** (FR-069):
-1. `{appDataDir}/play-ondas-app/defaults/{waveId}.mp3` → `downloaded-default`
-2. Custom copy exists in settings + file on disk → `custom`
+1. Custom copy exists in settings + file on disk → `custom`
+2. `{appDataDir}/play-ondas-app/defaults/{waveId}.mp3` → `downloaded-default`
 3. `{RESOURCE}/audio/{waveId}/default.mp3` (bundled) → `bundled-default`
 4. None found → `unavailable`
+
+> **Corrección 2026-06-13**: el orden anterior ponía `downloaded-default` antes que
+> `custom`. Como el fichero descargado siempre existe tras el primer arranque, el audio
+> personalizado nunca se alcanzaba y US2 ("una onda con audio personalizado válido puede
+> reproducirse") quedaba roto. El audio personalizado tiene ahora prioridad sobre el
+> predeterminado. FR-069 describe específicamente la resolución del audio *predeterminado*
+> (downloaded → bundled); la precedencia del audio custom proviene de US2 / FR-015.
 
 ---
 

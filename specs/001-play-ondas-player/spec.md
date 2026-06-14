@@ -285,8 +285,9 @@ verificar el estado de error con opción de reintentar.
 - **FR-006**: The system MUST play the selected category's active audio.
 - **FR-007**: The system MUST pause playback while preserving current position.
 - **FR-008**: The system MUST stop playback and reset the position to the start.
-- **FR-009**: The system MUST play audios in loop by default.
-- **FR-010**: The system MUST allow app-level volume from 0% to 100%.
+- **FR-009**: The system MUST play audios in loop by default. In v1, loop is always active and is not user-controllable; the loop indicator is a non-interactive status element. Since loop is always active, autoplay-on-switch (FR-005) always plays in loop regardless of any prior playback state.
+- **FR-010**: The system MUST allow app-level volume from 0% to 100% in integer
+  steps of 1. The default volume when no prior settings exist is 70.
 - **FR-011**: The system MUST persist volume between executions.
 - **FR-012**: The system MUST persist the last selected category between
   executions.
@@ -311,19 +312,28 @@ verificar el estado de error con opción de reintentar.
   MUST close automatically. On failure the modal MUST remain open and display
   an inline error message; the prior audio MUST remain active and unchanged.
 - **FR-021**: The system MUST remove the previous custom copy for a category
-  after a replacement succeeds.
+  after a replacement succeeds. FR-020 and FR-021 form a sequential contract:
+  FR-020 governs the in-progress replacement state (keep prior audio active
+  until new copy is validated); FR-021 governs the post-success cleanup (delete
+  prior custom copy only after the new copy is written, validated and
+  registered). Implementations MUST NOT delete the prior copy until the
+  replacement has fully succeeded.
 - **FR-022**: The system MUST allow restoring the bundled default audio for each
   category.
 - **FR-023**: The system MUST persist custom audio associations between
   executions.
 - **FR-024**: The system MUST store user configuration in a local, versioned
-  settings file in app data.
+  settings file named `settings.json`, located at
+  `{appDataDir}/play-ondas-app/settings.json` (never in the installation
+  directory).
 - **FR-025**: The system MUST recover from corrupt, incomplete or outdated-schema
   configuration by preserving a diagnostic copy (named
   `settings.corrupt-YYYYMMDD-HHMMSS.json`), regenerating a valid configuration
-  from defaults and informing the user. A `schemaVersion` mismatch (lower than
-  current) MUST trigger the same backup-and-reset flow as corrupt JSON; no
-  field-level migration is performed in v1.
+  from defaults and informing the user. The `schemaVersion` value for v1 is
+  `"1"`. Any loaded settings file with a `schemaVersion` value other than `"1"`
+  (including missing, lower or higher values) MUST trigger the same
+  backup-and-reset flow as corrupt JSON; no field-level migration is performed
+  in v1.
 - **FR-026**: The system MUST support theme modes Auto, Light and Dark.
 - **FR-027**: The system MUST default to automatic system theme.
 - **FR-028**: The system MUST persist the selected theme.
@@ -349,14 +359,20 @@ verificar el estado de error con opción de reintentar.
 - **FR-034b**: The system MUST resolve design ambiguity by using this order of
   authority: `screens.md` for screen behavior and copy, `design-system.md` for
   visual rules, `components.md` for component boundaries, `tokens/` for exact
-  values, screenshots for visual comparison and the offline prototype for
-  interaction details.
+  values, the offline prototype for interaction details, and screenshots for
+  visual comparison. When screenshots and the prototype directly conflict, the
+  prototype takes precedence as the authoritative interaction reference; the
+  conflict MUST be documented per FR-034c.
 - **FR-034c**: The system MUST document any deliberate deviation from the
   design package with the reason, affected screen/state and user impact.
 - **FR-035**: The system MUST use local fonts and local visual assets so the UI
   works offline.
 - **FR-036**: The system MUST keep waveform motion static when playback is not
-  active or the user requests reduced motion.
+  active or the user requests reduced motion (`prefers-reduced-motion: reduce`).
+  The reduced-motion requirement extends to all animated UI elements including
+  modal entrance/exit transitions, toast slide-in animations and download
+  progress pulse effects: these MUST be replaced with instant or
+  opacity-only transitions when reduced motion is active.
 - **FR-037**: The system MUST provide visible focus and keyboard operation for
   primary interactive controls.
 - **FR-038**: The system MUST avoid relying only on color to convey state.
@@ -366,7 +382,10 @@ verificar el estado de error con opción de reintentar.
 - **FR-040**: The system MUST avoid medical, therapeutic, diagnostic or
   guaranteed-effect claims.
 - **FR-041**: The system MUST include a general health-safe disclaimer for
-  ambient sounds.
+  ambient sounds. The approved v1 disclaimer text is: "Este audio es material
+  de acompañamiento sonoro. No sustituye consejo médico profesional." It MUST
+  be permanently visible in the main playback area (NowPlaying component or
+  AppShell footer) as specified by `play-ondas-app-design/screens.md`.
 - **FR-042**: The system MUST operate without Internet connectivity during
   normal use.
 - **FR-043**: The system MUST NOT send user data, audio files, paths or
@@ -385,7 +404,12 @@ verificar el estado de error con opción de reintentar.
   the five canonical wave identifiers.
 - **FR-063**: When one or more default audio files are missing, the system MUST
   show a download modal before allowing playback. The modal MUST display an
-  individual progress bar per file and an overall progress indicator.
+  individual progress bar per file and an overall progress indicator. The modal
+  is not dismissible until at least one audio file has downloaded successfully;
+  no close or skip button is shown. If a server response omits a
+  `Content-Length` header, the individual progress bar for that file MUST
+  display in indeterminate mode (animated, no percentage) while the global
+  progress tracks completed files.
 - **FR-064**: The system MUST download missing default audio files from the
   following fixed URLs declared in source code (not user-configurable):
   `https://files.mardomingo.com/audios/gamma.mp3`,
@@ -393,18 +417,27 @@ verificar el estado de error con opción de reintentar.
   `https://files.mardomingo.com/audios/alfa.mp3`,
   `https://files.mardomingo.com/audios/theta-delta.mp3`,
   `https://files.mardomingo.com/audios/brown-noise.mp3`.
+  All downloads MUST use HTTPS with TLS certificate validation enforced; the
+  implementation MUST NOT bypass certificate verification or follow redirects
+  that downgrade to plaintext HTTP. A TLS handshake failure MUST be treated
+  as a retryable download error (FR-066).
 - **FR-065**: Downloaded default audio files MUST be saved to
   `{appDataDir}/play-ondas-app/defaults/{waveId}.mp3`. They MUST NOT be saved
   to the app installation directory.
 - **FR-066**: If a download fails or no internet connection is available, the
   system MUST show a clear error message within the download modal and offer a
   retry action. Waves without a downloaded audio MUST show the "audio no
-  disponible" state and remain selectable but not playable.
+  disponible" state and remain selectable but not playable. All failure types
+  are retry-eligible in v1 regardless of error type (network error, HTTP
+  status code, disk error or other). A retry action MUST always be shown for
+  any failed file.
 - **FR-067**: Once all downloads complete successfully, the download modal MUST
   close automatically and the app MUST become fully usable without further
   internet access.
 - **FR-068**: If all default audio files are already present in the app data
-  directory, the download modal MUST NOT appear at startup.
+  directory, the download modal MUST NOT appear at startup. A file is
+  considered present if it exists at the expected path with a file size greater
+  than 0 bytes. No audio playability check is performed at startup.
 - **FR-069**: The audio service MUST resolve the default audio path for each
   wave by checking `{appDataDir}/play-ondas-app/defaults/{waveId}.mp3` first,
   then falling back to `public/audio/{waveId}/default.mp3` if bundled. If
@@ -607,7 +640,15 @@ verificar el estado de error con opción de reintentar.
 #### Stable events, assigned levels and minimum context
 
 The following table is the definitive contract for event names, levels and
-minimum context fields. Every call to the logger for these events MUST include
+minimum context fields. The `config.load.*` group covers the read operation
+(loading `settings.json` from disk, typically at startup). The
+`settings.persist.*` group covers the write operation (saving updated
+settings to disk after a user change). These are distinct operations with
+separate `operationId` values. In `app.bootstrap.config_loaded`, the field
+`isDefault: boolean` is `true` when default values were applied because no
+prior settings file existed or the existing file was corrupt or
+schema-mismatched; it is `false` when the settings file was loaded and
+validated successfully. Every call to the logger for these events MUST include
 at least the listed context fields; additional fields are allowed.
 
 Base fields added automatically by the wrapper (callers MUST NOT repeat them):
@@ -663,9 +704,14 @@ failure → `error`; irrecoverable process failure → `fatal`.
 - **Obligation**: every operation that has a `started` event AND at least one
   `completed`/`failed` event MUST generate an `operationId` at `started` and
   carry it unchanged in all related events. Mandatory operations:
-  `appBootstrap`, `loadSettings`, `persistSettings`, `audioPlayback` (per
-  session), `replaceWaveAudio`, `restoreWaveAudio`, `audioDownload`,
+  `appBootstrap`, `loadSettings`, `persistSettings`, `audioPlayback`,
+  `replaceWaveAudio`, `restoreWaveAudio`, `audioDownload`,
   `trayAction`, `windowShutdown`.
+- **audioPlayback session scope**: a new `operationId` is generated on each
+  Play action, including autoplay triggered by a wave switch (FR-005). The
+  same `operationId` is carried through subsequent `paused` and `stopped`
+  events for that playback. A new Play action (or autoplay-on-switch) always
+  generates a new `operationId`; Pause does not.
 - **Cross-boundary propagation**: the client generates the `operationId` before
   invoking a Tauri IPC command and passes it as a command parameter. The Rust
   handler includes it in its own log events for that operation. Both sides of
@@ -728,7 +774,11 @@ identifiers, sensitive full paths and excessive payloads are redacted as
 `[REDACTED]`. Custom audio `fileBasename` MAY be logged as the sanitized
 filename only (no directory path). `sanitizeForLog(value)` MUST cover objects,
 nested objects, arrays, serialized errors and unknown values. `debug` and
-`trace` MUST NOT relax redaction guarantees.
+`trace` MUST NOT relax redaction guarantees. The redaction contract extends
+to the download flow: HTTP error response bodies, server error messages,
+redirect URLs and local storage paths for downloaded files MUST be sanitized
+before logging; only the `waveId`, HTTP status code (as an integer) and a
+safe error classification are permitted in download error context fields.
 
 #### Verification procedure (three mandatory tiers)
 
@@ -817,9 +867,19 @@ Tests MUST use log level `error` by default to suppress noise.
 - **SC-008**: The UI passes manual visual review and automated screenshot or
   interaction checks for the 10 Aire reference screenshots at 900 x 620 px and
   minimum 720 x 560 px, with documented deviations only when technically
-  justified.
+  justified. Automated screenshot comparison uses a pixel-level tolerance of
+  ≤2% differing pixels per reference image; layout breaks, clipped controls
+  and color-token violations are always failures regardless of pixel count.
+  Manual review is a binary pass/fail per reference screen documented in the
+  acceptance checklist.
 - **SC-009**: The app displays no medical, therapeutic or guaranteed-effect
-  claims in user-facing wave descriptions or disclaimers.
+  claims in user-facing wave descriptions or disclaimers. Verification: an
+  automated scan of all user-facing string literals MUST confirm absence of the
+  following terms (case-insensitive): "cura", "trata", "diagnóstica",
+  "garantiza", "científicamente probado", "terapéutico", "mejora cognitiva",
+  "ansiedad", "insomnio" and their English equivalents. A manual review of
+  all visible in-app text by the developer or reviewer MUST be recorded as a
+  binary pass/fail in the acceptance checklist.
 - **SC-010**: Release validation produces a Windows MSI and Linux AppImage.
 - **SC-011**: Runtime logging validation passes all three verification tiers:
   (a) wrapper unit tests confirm level filtering and `sanitizeForLog` redaction;
@@ -827,9 +887,21 @@ Tests MUST use log level `error` by default to suppress noise.
   produces the correct events with minimum context fields in `.logs/app.jsonl`
   at `LOG_LEVEL=debug`, and that no `debug` entries appear at `LOG_LEVEL=info`;
   (c) manual acceptance checklist records which events were observed at each
-  level and confirms `debug` adds real diagnostic signal over `info`.
-- **SC-012**: Test coverage reports meet or exceed 80% globally and for critical
-  logic modules.
+  level and confirms `debug` adds real diagnostic signal over `info`. Tier 2
+  covers the `audioPlayback` flow as the mandatory automated example; all
+  remaining 27 events in the event table are covered by Tier 3 (manual
+  checklist at feature close). Tier 1 unit tests also cover `sanitizeForLog`
+  for download-related context fields (HTTP error messages, server responses
+  and local paths for downloaded files).
+- **SC-012**: Test coverage reports meet or exceed 80% globally and for the
+  following critical logic modules: `audioService`, `settingsService`,
+  `fileService`, `downloadService`, all Zod schemas (`waveSchema`,
+  `settingsSchema`, `audioMetaSchema`, `downloadSchema`), the shared logging
+  wrapper (`sanitize`, `levels`, `events`) and the Rust modules for `config`
+  (load/persist), `download` (downloader/cleanup) and `audio` (paths/copy).
+  Svelte UI components are evaluated by global coverage and behavioural tests;
+  per-file component coverage thresholds are not required but must not
+  systematically drag global coverage below 80%.
 - **SC-013**: On a clean install with no default audio files present, the
   download modal appears before the player is usable, all five files download
   correctly, the modal closes automatically on completion, and the app functions
@@ -847,6 +919,11 @@ Tests MUST use log level `error` by default to suppress noise.
 - Q: What does the UI show while a custom audio file is being copied and validated? → A: The confirm button shows a "Copiando…" state, the modal form is disabled, and the modal closes automatically on success. On failure the modal stays open with an error message.
 - Q: How does the app behave when the system tray is unavailable (e.g. some Linux environments)? → A: Silent degradation — closing the window quits the app directly (no close-to-tray dialog), tray preference options are hidden in the settings screen, and a `warn` log event is emitted at startup. No user-facing message shown.
 - Q: Should default audio files be bundled in the installer or downloaded on first launch? → A: Downloaded on first launch from fixed URLs in source code (`https://files.mardomingo.com/audios/{waveId}.mp3`). Installer ships without audio files to keep size small. Constitution amended to v1.5.0 to allow this exception.
+- Q: What is the `schemaVersion` value for v1? → A: `"1"` (string literal). Any value other than `"1"` in a loaded settings file triggers the same backup-and-reset flow as corrupt JSON.
+- Q: What is the default volume when no settings exist? → A: `70` (range 0–100).
+- Q: What is the scope of an `audioPlayback` operationId? → A: A new `operationId` is generated on each Play action (including autoplay-on-switch). The same `operationId` is carried through subsequent Pause and Stop events for that playback. A new Play action generates a new `operationId`.
+- Q: What does "already present" mean in FR-068? → A: A file is present if it exists at the expected path with size > 0 bytes. No audio playability check is performed at startup.
+- Q: Which failure types are retry-eligible for failed downloads? → A: All failures are retry-eligible in v1, regardless of error type (HTTP status code, network error, disk error). Distinction between permanent and transient errors is deferred to v2.
 
 ## Assumptions
 

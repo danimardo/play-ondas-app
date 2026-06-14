@@ -1,6 +1,9 @@
 # Logs de desarrollo (recreados en cada arranque)
 .logs/
 
+# Capturas/scratch de diagnóstico
+logs/
+
 # Dependencias
 node_modules/
 
@@ -8,6 +11,12 @@ node_modules/
 dist/
 build/
 src-tauri/target/
+
+# Tauri schemas generados
+src-tauri/gen/
+
+# Cobertura de tests (generada)
+coverage/
 
 # Variables de entorno (nunca commitear secretos)
 .env

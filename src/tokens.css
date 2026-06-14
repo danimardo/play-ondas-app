@@ -1,0 +1,134 @@
+/* ============================================================
+   Play Ondas app — Design Tokens (CSS custom properties)
+   Direction: "Aire" · warm, calm, minimal
+   Light is default; dark overrides under [data-theme="dark"]
+   (also works with a `.dark` class — see bottom).
+   ============================================================ */
+
+:root {
+  /* --- Brand wave hues (theme-independent) --- */
+  --wave-gamma: #D98A2B;   /* high cognition  · 30–100 Hz */
+  --wave-beta:  #CB6A4A;   /* active focus    · 13–30 Hz  */
+  --wave-alfa:  #8C9A56;   /* calm awareness  · 8–12 Hz   */
+  --wave-theta: #6E6CA8;   /* deep relax      · < 8 Hz    */
+  --wave-brown: #9A6B45;   /* brown noise     · —         */
+
+  /* --- Semantic feedback --- */
+  --color-error:        #B4472E;
+  --color-ok:           #5BA17A;
+  --color-error-bg:     #fdf5f3;  /* error box background (light) */
+  --color-error-border: #f9d5cd;  /* error box border (light) */
+
+  /* --- Surfaces & text — LIGHT (default) --- */
+  --color-bg:          #F6F1E8;
+  --color-surface:     #FCF9F3;
+  --color-list-bg:     #FAF6EF;
+  --color-border:      #E7DECF;
+  --color-line:        #F0E9DC;  /* subtle fills: chips, segmented bg */
+  --color-ink:         #2C2620;  /* primary text */
+  --color-ink-2:       #5F574B;  /* secondary text */
+  --color-mut:         #8A7F70;  /* muted text / icons */
+  --color-faint:       #A2917A;  /* labels / kickers */
+  --color-accent:      #C77D3A;  /* brand accent (UI actions) */
+  --color-accent-text: #FFFFFF;  /* text/icon on accent */
+  --color-track:       #E7DECF;  /* slider / toggle off track */
+  --color-btn-border:  #DCD2C1;  /* ghost control border */
+  --color-knob:        #FFFFFF;  /* toggle knob */
+  --color-dot:         #E2D8C6;  /* window traffic dots */
+
+  /* --- Typography --- */
+  --font-ui:   "Hanken Grotesk", system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, "Cascadia Code", Menlo, monospace;
+
+  --text-display: 32px;  /* wave name (detail)            w700 / -0.02em */
+  --text-h2:      20px;  /* screen title                 w700 / -0.01em */
+  --text-title:   17px;  /* modal/dialog title           w700 */
+  --text-body:    15px;  /* descriptions   line-height 1.55 */
+  --text-body-sm: 13.5px;/* secondary copy */
+  --text-label:   13px;  /* controls, list items */
+  --text-caption: 12px;  /* badges, hints */
+  --text-micro:   11px;  /* mono data (Hz, filenames) */
+  --text-kicker:  10.5px;/* mono UPPERCASE, tracking .14em */
+
+  /* --- Spacing scale (4px base) --- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 30px;
+  --space-8: 36px;
+
+  /* --- Radii --- */
+  --radius-sm:   8px;   /* small buttons, chips */
+  --radius-md:   11px;  /* list rows, inputs */
+  --radius-lg:   14px;  /* cards, window */
+  --radius-xl:   18px;  /* modals */
+  --radius-pill: 999px;
+  --radius-circle: 50%;
+
+  /* --- Elevation --- */
+  --shadow-window:  0 16px 38px -10px rgba(40, 32, 20, 0.26);
+  --shadow-modal:   0 24px 60px -12px rgba(0, 0, 0, 0.40);
+  --shadow-popover: 0 18px 44px -10px rgba(0, 0, 0, 0.45);
+  /* accent button glow uses the active wave hue, e.g.:
+     box-shadow: 0 8px 20px -4px rgba(203,106,74,.55); */
+
+  /* --- Motion --- */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 120ms;
+  --dur-base: 200ms;   /* theme switch, hover */
+}
+
+/* ============ DARK THEME ============ */
+:root[data-theme="dark"],
+.dark {
+  --color-error-bg:     #2c1e1c;  /* error box background (dark) */
+  --color-error-border: #4a2822;  /* error box border (dark) */
+  --color-bg:          #1C1916;
+  --color-surface:     #221E19;
+  --color-list-bg:     #211D18;
+  --color-border:      #332E27;
+  --color-line:        #2F2A24;
+  --color-ink:         #F1EADE;
+  --color-ink-2:       #C4BAA9;
+  --color-mut:         #9C917F;
+  --color-faint:       #8C8170;
+  --color-accent:      #E0A45C;
+  --color-accent-text: #1C1916;
+  --color-track:       #332E27;
+  --color-btn-border:  #3F392F;
+  --color-knob:        #F1EADE;
+  --color-dot:         #3A342C;
+}
+
+/* `Tema · Auto` — follow the OS when no explicit theme is set.
+   Apply data-theme="dark"/"light" from JS to override. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --color-error-bg:     #2c1e1c;
+    --color-error-border: #4a2822;
+    --color-bg:          #1C1916;
+    --color-surface:     #221E19;
+    --color-list-bg:     #211D18;
+    --color-border:      #332E27;
+    --color-line:        #2F2A24;
+    --color-ink:         #F1EADE;
+    --color-ink-2:       #C4BAA9;
+    --color-mut:         #9C917F;
+    --color-faint:       #8C8170;
+    --color-accent:      #E0A45C;
+    --color-accent-text: #1C1916;
+    --color-track:       #332E27;
+    --color-btn-border:  #3F392F;
+    --color-knob:        #F1EADE;
+    --color-dot:         #3A342C;
+  }
+}
+
+/* ============ Keyframes ============ */
+@keyframes waveBar {
+  0%, 100% { transform: scaleY(0.30); }
+  50%      { transform: scaleY(1); }
+}

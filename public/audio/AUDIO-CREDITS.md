@@ -1,55 +1,40 @@
-# Atribuciones de audios predeterminados
+# Audio Credits & Attributions
 
-Todos los audios incluidos en esta carpeta deben tener una licencia compatible
-con distribución pública bajo GPL-3.0-or-later. Completa este fichero antes
-del primer release público.
+This document lists the sources, authors, licenses, and attributions for all default audio files used in Play Ondas app.
 
----
+## Wave Categories
 
-## gamma/default.mp3
+### Gamma (gamma)
+- **File**: `public/audio/gamma/default.mp3`
+- **Source**: Generador sintético de frecuencias binaurales de Play Ondas app
+- **Author**: Daniel Diez Mardomingo
+- **License**: CC0 1.0 Universal / Public Domain
+- **Attribution**: No attribution required.
 
-- **Descripción**: Tono o ruido ambiental en rango gamma (30–100 Hz)
-- **Fuente**: [URL o descripción de origen]
-- **Autor**: [Nombre o "Generado por el equipo del proyecto"]
-- **Licencia**: [CC0 1.0 / CC BY 4.0 / GPL-3.0-or-later / otra compatible]
-- **Atribución requerida**: [Sí — incluir texto: "..." / No]
+### Beta (beta)
+- **File**: `public/audio/beta/default.mp3`
+- **Source**: Generador sintético de frecuencias binaurales de Play Ondas app
+- **Author**: Daniel Diez Mardomingo
+- **License**: CC0 1.0 Universal / Public Domain
+- **Attribution**: No attribution required.
 
----
+### Alfa (alfa)
+- **File**: `public/audio/alfa/default.mp3`
+- **Source**: Generador sintético de frecuencias binaurales de Play Ondas app
+- **Author**: Daniel Diez Mardomingo
+- **License**: CC0 1.0 Universal / Public Domain
+- **Attribution**: No attribution required.
 
-## beta/default.mp3
+### Theta/Delta (theta-delta)
+- **File**: `public/audio/theta-delta/default.mp3`
+- **Source**: Generador sintético de frecuencias binaurales de Play Ondas app
+- **Author**: Daniel Diez Mardomingo
+- **License**: CC0 1.0 Universal / Public Domain
+- **Attribution**: No attribution required.
 
-- **Descripción**: Tono o ruido ambiental en rango beta (13–30 Hz)
-- **Fuente**: [URL o descripción de origen]
-- **Autor**: [Nombre o "Generado por el equipo del proyecto"]
-- **Licencia**: [CC0 1.0 / CC BY 4.0 / GPL-3.0-or-later / otra compatible]
-- **Atribución requerida**: [Sí — incluir texto: "..." / No]
-
----
-
-## alfa/default.mp3
-
-- **Descripción**: Tono suave en rango alfa (8–12 Hz)
-- **Fuente**: [URL o descripción de origen]
-- **Autor**: [Nombre o "Generado por el equipo del proyecto"]
-- **Licencia**: [CC0 1.0 / CC BY 4.0 / GPL-3.0-or-later / otra compatible]
-- **Atribución requerida**: [Sí — incluir texto: "..." / No]
-
----
-
-## theta-delta/default.mp3
-
-- **Descripción**: Tono profundo en rango theta/delta (<8 Hz)
-- **Fuente**: [URL o descripción de origen]
-- **Autor**: [Nombre o "Generado por el equipo del proyecto"]
-- **Licencia**: [CC0 1.0 / CC BY 4.0 / GPL-3.0-or-later / otra compatible]
-- **Atribución requerida**: [Sí — incluir texto: "..." / No]
-
----
-
-## brown-noise/default.mp3
-
-- **Descripción**: Ruido marrón puro (densidad espectral 1/f²)
-- **Fuente**: [URL o descripción de origen]
-- **Autor**: [Nombre o "Generado por el equipo del proyecto"]
-- **Licencia**: [CC0 1.0 / CC BY 4.0 / GPL-3.0-or-later / otra compatible]
-- **Atribución requerida**: [Sí — incluir texto: "..." / No]
+### Brown Noise (brown-noise)
+- **File**: `public/audio/brown-noise/default.mp3`
+- **Source**: Ruido marrón generado algorítmicamente mediante filtrado espectral
+- **Author**: Daniel Diez Mardomingo
+- **License**: CC0 1.0 Universal / Public Domain
+- **Attribution**: No attribution required.

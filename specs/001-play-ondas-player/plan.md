@@ -39,10 +39,14 @@ Play Ondas app is a local-first desktop audio player for ambient sounds (binaura
 - `defaults/{waveId}.mp3` — downloaded default audio files
 
 **Audio path resolution per wave** (FR-069):
-1. `{appDataDir}/play-ondas-app/defaults/{waveId}.mp3` (downloaded default)
-2. `{appDataDir}/play-ondas-app/custom/{waveId}/audio.{ext}` (custom copy, if set)
+1. `{appDataDir}/play-ondas-app/custom/{waveId}/{fileName}` (custom copy, if set) — prioridad sobre el default (US2)
+2. `{appDataDir}/play-ondas-app/defaults/{waveId}.mp3` (downloaded default)
 3. `public/audio/{waveId}/default.mp3` via Tauri asset protocol (bundled fallback, empty in v1)
 4. → "audio no disponible" state if none present
+
+> **Corrección 2026-06-13**: el orden original ponía el downloaded-default antes que el custom,
+> dejando el audio personalizado inalcanzable (US2 roto). El custom va ahora primero. Ver
+> data-model.md §WaveAudioAssociation.
 
 **Audio playback**: `HTMLAudioElement` behind `audioService.ts`. Local file paths from Rust are converted to WebKit-compatible URLs via `convertFileSrc()` from `@tauri-apps/api/core`. Tauri asset protocol is configured for `{appDataDir}/play-ondas-app/**` with read-only scope.
 
