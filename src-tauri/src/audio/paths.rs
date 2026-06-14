@@ -46,13 +46,13 @@ pub fn resolve_audio_path_logic(
         }
     }
 
-    // 3. Check bundled default fallback: {resource_dir}/audio/{waveId}/default.mp3
-    let bundled_path = resource_dir.join("audio").join(wave_str).join("default.mp3");
+    // 3. Check bundled OGG fallback: {resource_dir}/audio/{waveId}.ogg
+    let bundled_path = resource_dir.join("audio").join(format!("{}.ogg", wave_str));
     if bundled_path.exists() && bundled_path.is_file() {
         return (
             "bundled-default".to_string(),
             Some(bundled_path.to_string_lossy().to_string()),
-            "default.mp3".to_string(),
+            format!("{}.ogg", wave_str),
         );
     }
 

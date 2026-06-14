@@ -157,10 +157,7 @@
       showErrorToast = true;
     }
 
-    const missing = await downloadStore.checkMissingFiles();
-    if (missing.length > 0) {
-      downloadStore.startDownload();
-    }
+    await downloadStore.checkMissingFiles();
 
     // Escuchar solicitudes de cierre de ventana
     const unlistenClose = await listen('window:close-requested', async () => {
@@ -291,7 +288,7 @@
       />
     {/if}
 
-    {#if downloadStore.missingFiles.length > 0 && !downloadStore.isCompleted}
+    {#if downloadStore.missingFiles.length > 0 && !downloadStore.isCompleted && !downloadStore.usingExamples}
       <DownloadModal />
     {/if}
 

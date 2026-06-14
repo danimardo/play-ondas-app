@@ -1,18 +1,29 @@
 <script lang="ts">
-  import { Loader2, CheckCircle, AlertTriangle, Clock, Download } from 'lucide-svelte';
+  import { Loader2, CheckCircle, AlertTriangle, Clock, Download, Music } from 'lucide-svelte';
   import { downloadStore } from '../stores/downloadStore.svelte';
   import { WAVE_CATEGORIES } from '../data/waves';
+
+  type Phase = 'offer' | 'downloading';
+  let phase = $state<Phase>('offer');
 
   const waveDisplayNames: Record<string, string> = WAVE_CATEGORIES.reduce((acc, cat) => {
     acc[cat.id] = cat.name;
     return acc;
   }, {} as Record<string, string>);
 
+  function handleDownload() {
+    phase = 'downloading';
+    downloadStore.startDownload();
+  }
+
+  function handleUseExamples() {
+    downloadStore.useExamples();
+  }
+
   function handleRetry() {
     downloadStore.startDownload();
   }
 
-  // Obtenemos los ficheros como array ordenado
   let filesList = $derived(
     Object.values(downloadStore.progress.files).sort((a, b) => a.waveId.localeCompare(b.waveId))
   );
@@ -20,88 +31,119 @@
 
 <div class="download-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
   <div class="download-card">
-    <header class="modal-header">
-      <span class="modal-kicker">Primer Arranque</span>
-      <h2 id="modal-title" class="modal-title">Descargando Audios Base</h2>
-      <p class="modal-desc">
-        Play Ondas requiere descargar los archivos de audio por defecto para poder reproducir las ondas sin conexión a internet.
-      </p>
-    </header>
 
-    <main class="modal-body">
-      <!-- Barra de progreso global -->
-      <div class="progress-section">
-        <div class="progress-header">
-          <span class="progress-label">Progreso de descarga</span>
-          <span class="progress-value font-mono">{downloadStore.progress.globalProgressPercent}%</span>
+    {#if phase === 'offer'}
+      <!-- ── Fase de oferta inicial ── -->
+      <header class="modal-header">
+        <div class="offer-icon-wrap">
+          <Music size={28} />
         </div>
-        <div class="progress-bar-track">
-          <div
-            class="progress-bar-fill"
-            style="width: {downloadStore.progress.globalProgressPercent}%"
-            class:failed={downloadStore.isFailed}
-          ></div>
+        <span class="modal-kicker">Primer Arranque</span>
+        <h2 id="modal-title" class="modal-title">Audios de acompañamiento</h2>
+        <p class="modal-desc">
+          Para una experiencia completa, descarga los audios de alta calidad
+          (≈&nbsp;45&nbsp;MB). Si no tienes conexión disponible o estás en un
+          entorno restringido, puedes empezar ahora mismo con los audios de
+          ejemplo incluidos en la instalación.
+        </p>
+      </header>
+
+      <footer class="modal-footer modal-footer--col">
+        <button type="button" class="primary-btn" onclick={handleDownload}>
+          <Download size={15} />
+          <span>Descargar ahora</span>
+        </button>
+        <button type="button" class="secondary-btn" onclick={handleUseExamples}>
+          Usar audios de ejemplo
+        </button>
+      </footer>
+
+    {:else}
+      <!-- ── Fase de descarga ── -->
+      <header class="modal-header">
+        <span class="modal-kicker">Primer Arranque</span>
+        <h2 id="modal-title" class="modal-title">Descargando Audios Base</h2>
+        <p class="modal-desc">
+          Play Ondas está descargando los archivos de audio para reproducir las
+          ondas sin conexión a internet.
+        </p>
+      </header>
+
+      <main class="modal-body">
+        <div class="progress-section">
+          <div class="progress-header">
+            <span class="progress-label">Progreso de descarga</span>
+            <span class="progress-value font-mono">{downloadStore.progress.globalProgressPercent}%</span>
+          </div>
+          <div class="progress-bar-track">
+            <div
+              class="progress-bar-fill"
+              style="width: {downloadStore.progress.globalProgressPercent}%"
+              class:failed={downloadStore.isFailed}
+            ></div>
+          </div>
+          {#if downloadStore.isDownloading}
+            <div class="progress-subtext font-mono">
+              Descargando archivo {downloadStore.progress.currentFileIndex + 1} de {downloadStore.progress.totalFiles}
+            </div>
+          {/if}
         </div>
-        {#if downloadStore.isDownloading}
-          <div class="progress-subtext font-mono">
-            Descargando archivo {downloadStore.progress.currentFileIndex + 1} de {downloadStore.progress.totalFiles}
+
+        <div class="files-list">
+          {#each filesList as file}
+            <div class="file-row" class:active={file.status === 'downloading'}>
+              <div class="file-info">
+                <span class="file-name">{waveDisplayNames[file.waveId] || file.waveId}</span>
+                {#if file.status === 'downloading'}
+                  <span class="file-progress-percent font-mono">{file.progressPercent}%</span>
+                {/if}
+              </div>
+              <div class="file-status">
+                {#if file.status === 'completed'}
+                  <CheckCircle size={16} class="text-ok" />
+                {:else if file.status === 'failed'}
+                  <AlertTriangle size={16} class="text-error" />
+                {:else if file.status === 'downloading'}
+                  <Loader2 size={16} class="animate-spin text-accent" />
+                {:else}
+                  <Clock size={16} class="text-mut" />
+                {/if}
+              </div>
+            </div>
+          {/each}
+        </div>
+
+        {#if downloadStore.isFailed}
+          <div class="error-box" role="alert">
+            <AlertTriangle size={18} class="error-box-icon" />
+            <div class="error-box-content">
+              <h4 class="error-box-title font-sans">Error de Descarga</h4>
+              <p class="error-box-desc">
+                {downloadStore.progress.error || 'No se pudo completar la descarga. Por favor, comprueba tu conexión.'}
+              </p>
+            </div>
           </div>
         {/if}
-      </div>
+      </main>
 
-      <!-- Lista individual por archivo -->
-      <div class="files-list">
-        {#each filesList as file}
-          <div class="file-row" class:active={file.status === 'downloading'}>
-            <div class="file-info">
-              <span class="file-name">{waveDisplayNames[file.waveId] || file.waveId}</span>
-              {#if file.status === 'downloading'}
-                <span class="file-progress-percent font-mono">{file.progressPercent}%</span>
-              {/if}
-            </div>
-
-            <div class="file-status">
-              {#if file.status === 'completed'}
-                <CheckCircle size={16} class="text-ok" />
-              {:else if file.status === 'failed'}
-                <AlertTriangle size={16} class="text-error" />
-              {:else if file.status === 'downloading'}
-                <Loader2 size={16} class="animate-spin text-accent" />
-              {:else}
-                <Clock size={16} class="text-mut" />
-              {/if}
-            </div>
+      <footer class="modal-footer">
+        {#if downloadStore.isFailed}
+          <button type="button" class="primary-btn" onclick={handleRetry}>
+            <Download size={15} />
+            <span>Reintentar descarga</span>
+          </button>
+          <button type="button" class="secondary-btn" onclick={handleUseExamples}>
+            Usar audios de ejemplo
+          </button>
+        {:else}
+          <div class="loading-footer">
+            <Loader2 size={16} class="animate-spin text-mut" />
+            <span class="loading-footer-text">Por favor, no cierres la aplicación...</span>
           </div>
-        {/each}
-      </div>
+        {/if}
+      </footer>
+    {/if}
 
-      <!-- Sección de error -->
-      {#if downloadStore.isFailed}
-        <div class="error-box" role="alert">
-          <AlertTriangle size={18} class="error-box-icon" />
-          <div class="error-box-content">
-            <h4 class="error-box-title font-sans">Error de Descarga</h4>
-            <p class="error-box-desc">
-              {downloadStore.progress.error || 'No se pudo completar la descarga. Por favor, comprueba tu conexión.'}
-            </p>
-          </div>
-        </div>
-      {/if}
-    </main>
-
-    <footer class="modal-footer">
-      {#if downloadStore.isFailed}
-        <button type="button" class="retry-btn" onclick={handleRetry}>
-          <Download size={15} />
-          <span>Reintentar descarga</span>
-        </button>
-      {:else}
-        <div class="loading-footer">
-          <Loader2 size={16} class="animate-spin text-mut" />
-          <span class="loading-footer-text">Por favor, no cierres la aplicación...</span>
-        </div>
-      {/if}
-    </footer>
   </div>
 </div>
 
@@ -112,7 +154,7 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(28, 25, 22, 0.85); /* Fondo oscuro Aire */
+    background-color: rgba(28, 25, 22, 0.85);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -135,14 +177,8 @@
   }
 
   @keyframes scaleIn {
-    from {
-      transform: scale(0.95);
-      opacity: 0;
-    }
-    to {
-      transform: scale(1);
-      opacity: 1;
-    }
+    from { transform: scale(0.95); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
   }
 
   .modal-header {
@@ -152,6 +188,18 @@
     align-items: center;
     text-align: center;
     border-bottom: 1px solid var(--color-line);
+  }
+
+  .offer-icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    background-color: var(--color-accent-subtle, color-mix(in srgb, var(--color-accent) 12%, transparent));
+    border-radius: var(--radius-pill);
+    color: var(--color-accent);
+    margin-bottom: var(--space-3);
   }
 
   .modal-kicker {
@@ -271,14 +319,8 @@
     font-weight: 600;
   }
 
-  /* :global porque la clase se aplica al <svg> de un icono lucide (componente hijo) */
-  :global(.text-ok) {
-    color: var(--color-ok);
-  }
-
-  :global(.text-error) {
-    color: var(--color-error);
-  }
+  :global(.text-ok)    { color: var(--color-ok); }
+  :global(.text-error) { color: var(--color-error); }
 
   .error-box {
     background-color: var(--color-error-bg);
@@ -321,9 +363,15 @@
     border-top: 1px solid var(--color-line);
     display: flex;
     justify-content: center;
+    gap: var(--space-3);
   }
 
-  .retry-btn {
+  .modal-footer--col {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .primary-btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -341,13 +389,28 @@
     transition: opacity var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
   }
 
-  .retry-btn:hover {
-    opacity: 0.92;
+  .primary-btn:hover  { opacity: 0.92; }
+  .primary-btn:active { transform: scale(0.98); }
+
+  .secondary-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-ui);
+    font-size: var(--text-label);
+    font-weight: 500;
+    background-color: transparent;
+    color: var(--color-ink-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: var(--space-3) var(--space-5);
+    cursor: pointer;
+    width: 100%;
+    transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
   }
 
-  .retry-btn:active {
-    transform: scale(0.98);
-  }
+  .secondary-btn:hover  { border-color: var(--color-ink-2); color: var(--color-ink); }
+  .secondary-btn:active { transform: scale(0.98); }
 
   .loading-footer {
     display: flex;
@@ -366,11 +429,7 @@
   }
 
   @keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
   }
 </style>

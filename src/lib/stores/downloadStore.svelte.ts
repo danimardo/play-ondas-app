@@ -19,6 +19,7 @@ const INITIAL_PROGRESS: GlobalDownloadProgress = {
 class DownloadStore {
   #progress = $state<GlobalDownloadProgress>(INITIAL_PROGRESS);
   #missingFiles = $state<WaveId[]>([]);
+  #usingExamples = $state(false);
   #unlistenProgress: UnlistenFn | null = null;
 
   get progress() {
@@ -27,6 +28,10 @@ class DownloadStore {
 
   get missingFiles() {
     return this.#missingFiles;
+  }
+
+  get usingExamples() {
+    return this.#usingExamples;
   }
 
   get isDownloading() {
@@ -117,6 +122,11 @@ class DownloadStore {
         error: errorMsg,
       };
     }
+  }
+
+  useExamples() {
+    this.#usingExamples = true;
+    this.reset();
   }
 
   reset() {
