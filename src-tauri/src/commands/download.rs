@@ -17,21 +17,41 @@ pub async fn start_audio_download(
     app: AppHandle,
     window: WebviewWindow,
     state: State<'_, DownloadState>,
+    wave_ids: Option<Vec<String>>,
 ) -> Result<(), String> {
+    // Evitar descargas simultáneas desde distintas ventanas
+    if state.is_downloading.compare_exchange(false, true, Ordering::Acquire, Ordering::Relaxed).is_err() {
+        warn!(event = "audio.download.already_running");
+        return Ok(());
+    }
+
     let app_data_dir = app.path().app_data_dir().unwrap_or_default().join("play-ondas-app");
     let missing_waves = check_audio_files_logic(&app_data_dir);
 
     if missing_waves.is_empty() {
+        state.is_downloading.store(false, Ordering::Release);
         return Ok(());
     }
 
-    // Reiniciamos el flag de cancelación al comenzar una nueva descarga.
+    // Si el frontend especifica un subconjunto, lo filtramos contra los que faltan
+    let waves_to_download: Vec<String> = match wave_ids {
+        Some(ids) => missing_waves.into_iter().filter(|w| ids.contains(w)).collect(),
+        None => missing_waves,
+    };
+
+    if waves_to_download.is_empty() {
+        state.is_downloading.store(false, Ordering::Release);
+        return Ok(());
+    }
+
     let cancel = state.cancel.clone();
     cancel.store(false, Ordering::Relaxed);
 
-    info!(event = "audio.download.started", missingCount = missing_waves.len());
+    info!(event = "audio.download.started", missingCount = waves_to_download.len());
 
-    let result = download_audio_files(app, window, missing_waves, app_data_dir, cancel).await;
+    let result = download_audio_files(app, window, waves_to_download, app_data_dir, cancel).await;
+
+    state.is_downloading.store(false, Ordering::Release);
 
     match &result {
         Ok(_) => info!(event = "audio.download.completed"),

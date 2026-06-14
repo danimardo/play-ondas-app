@@ -43,6 +43,8 @@ export const UserSettingsSchema = z.object({
   windowY: z.number().int().optional(),
   windowWidth: z.number().int().optional(),
   windowHeight: z.number().int().optional(),
+  // Suprimir el diálogo de oferta de descarga en cada arranque
+  skipAudioDownloadOffer: z.boolean().default(false),
 });
 export type UserSettings = z.infer<typeof UserSettingsSchema>;
 
@@ -63,6 +65,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
     'brown-noise': null,
   },
   shortcuts: DEFAULT_SHORTCUTS,
+  skipAudioDownloadOffer: false,
 };
 
 export const ValidationErrorSchema = z.object({

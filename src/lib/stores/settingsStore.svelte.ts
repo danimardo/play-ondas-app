@@ -102,6 +102,9 @@ class SettingsStore {
   get shortcuts(): Shortcuts { return this.#current.shortcuts; }
   set shortcuts(value: Shortcuts) { this.#current = { ...this.#current, shortcuts: value }; }
 
+  get skipAudioDownloadOffer() { return this.#current.skipAudioDownloadOffer ?? false; }
+  set skipAudioDownloadOffer(value: boolean) { this.#current = { ...this.#current, skipAudioDownloadOffer: value }; }
+
   async initSettings() {
     if (this.#initialized) return;
     try {
@@ -141,6 +144,7 @@ class SettingsStore {
             const windowWidth = this.windowWidth;
             const windowHeight = this.windowHeight;
             const shortcuts = this.shortcuts;
+            const skipAudioDownloadOffer = this.skipAudioDownloadOffer;
             const customAudio = {
               gamma: this.customAudio.gamma,
               beta: this.customAudio.beta,
@@ -160,6 +164,7 @@ class SettingsStore {
               closeDialogSeen,
               customAudio,
               shortcuts,
+              skipAudioDownloadOffer,
               windowX,
               windowY,
               windowWidth,
@@ -214,6 +219,7 @@ class SettingsStore {
         'brown-noise': this.customAudio['brown-noise'],
       },
       shortcuts: this.shortcuts,
+      skipAudioDownloadOffer: this.skipAudioDownloadOffer,
       windowX: this.windowX,
       windowY: this.windowY,
       windowWidth: this.windowWidth,
@@ -254,6 +260,7 @@ class SettingsStore {
     this.#current.customAudio['theta-delta'] = null;
     this.#current.customAudio['brown-noise'] = null;
     this.#current.shortcuts = { ...DEFAULT_SETTINGS.shortcuts };
+    this.#current.skipAudioDownloadOffer = DEFAULT_SETTINGS.skipAudioDownloadOffer;
 
     this.#initialized = false;
     this.#error = null;

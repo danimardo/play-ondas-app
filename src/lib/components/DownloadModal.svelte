@@ -1,27 +1,61 @@
 <script lang="ts">
   import { Loader2, CheckCircle, AlertTriangle, Clock, Download, Music } from 'lucide-svelte';
   import { downloadStore } from '../stores/downloadStore.svelte';
+  import { settingsStore } from '../stores/settingsStore.svelte';
   import { WAVE_CATEGORIES } from '../data/waves';
 
-  type Phase = 'offer' | 'downloading';
+  type Phase = 'offer' | 'conflict' | 'downloading';
   let phase = $state<Phase>('offer');
+  let skipOffer = $state(false);
+  let wavesToDownload = $state<string[]>([]);
 
   const waveDisplayNames: Record<string, string> = WAVE_CATEGORIES.reduce((acc, cat) => {
     acc[cat.id] = cat.name;
     return acc;
   }, {} as Record<string, string>);
 
-  function handleDownload() {
-    phase = 'downloading';
-    downloadStore.startDownload();
+  // Ondas sin descargar que el usuario tiene personalizadas
+  let conflictingWaves = $derived(
+    downloadStore.missingFiles.filter(
+      (id) => settingsStore.customAudio[id as keyof typeof settingsStore.customAudio] !== null
+    )
+  );
+
+  function handleDownloadAll() {
+    if (conflictingWaves.length > 0) {
+      phase = 'conflict';
+    } else {
+      startDownload(downloadStore.missingFiles);
+    }
   }
 
   function handleUseExamples() {
+    if (skipOffer) {
+      settingsStore.skipAudioDownloadOffer = true;
+      settingsStore.persistNow().catch(() => {});
+    }
     downloadStore.useExamples();
   }
 
+  function handleConflictAll() {
+    startDownload(downloadStore.missingFiles);
+  }
+
+  function handleConflictSkipCustom() {
+    const filtered = downloadStore.missingFiles.filter(
+      (id) => settingsStore.customAudio[id as keyof typeof settingsStore.customAudio] === null
+    );
+    startDownload(filtered);
+  }
+
+  function startDownload(ids: string[]) {
+    wavesToDownload = ids;
+    phase = 'downloading';
+    downloadStore.startDownload(ids);
+  }
+
   function handleRetry() {
-    downloadStore.startDownload();
+    downloadStore.startDownload(wavesToDownload.length > 0 ? wavesToDownload : undefined);
   }
 
   let filesList = $derived(
@@ -33,7 +67,7 @@
   <div class="download-card">
 
     {#if phase === 'offer'}
-      <!-- ── Fase de oferta inicial ── -->
+      <!-- ── Fase 1: Oferta inicial ── -->
       <header class="modal-header">
         <div class="offer-icon-wrap">
           <Music size={28} />
@@ -42,30 +76,65 @@
         <h2 id="modal-title" class="modal-title">Audios de acompañamiento</h2>
         <p class="modal-desc">
           Para una experiencia completa, descarga los audios de alta calidad
-          (≈&nbsp;45&nbsp;MB). Si no tienes conexión disponible o estás en un
-          entorno restringido, puedes empezar ahora mismo con los audios de
-          ejemplo incluidos en la instalación.
+          (≈&nbsp;45&nbsp;MB). Si no tienes conexión o estás en un entorno
+          restringido, puedes usar los audios de ejemplo incluidos.
         </p>
       </header>
 
       <footer class="modal-footer modal-footer--col">
-        <button type="button" class="primary-btn" onclick={handleDownload}>
+        <button type="button" class="primary-btn" onclick={handleDownloadAll}>
           <Download size={15} />
           <span>Descargar ahora</span>
         </button>
         <button type="button" class="secondary-btn" onclick={handleUseExamples}>
           Usar audios de ejemplo
         </button>
+        <label class="skip-label">
+          <input type="checkbox" bind:checked={skipOffer} class="skip-check" />
+          <span>No volver a preguntar</span>
+        </label>
+      </footer>
+
+    {:else if phase === 'conflict'}
+      <!-- ── Fase 2: Conflicto con audios personalizados ── -->
+      <header class="modal-header">
+        <span class="modal-kicker">Atención</span>
+        <h2 id="modal-title" class="modal-title">Audios personalizados detectados</h2>
+        <p class="modal-desc">
+          Las siguientes ondas ya tienen un audio personalizado asignado. El audio
+          descargado <strong>no reemplazará</strong> tu selección, pero estará
+          disponible como respaldo si lo eliminas.
+        </p>
+      </header>
+
+      <main class="modal-body">
+        <ul class="conflict-list">
+          {#each conflictingWaves as waveId}
+            <li class="conflict-item">
+              <AlertTriangle size={14} class="conflict-icon" />
+              <span>{waveDisplayNames[waveId] || waveId}</span>
+            </li>
+          {/each}
+        </ul>
+      </main>
+
+      <footer class="modal-footer modal-footer--col">
+        <button type="button" class="primary-btn" onclick={handleConflictAll}>
+          <Download size={15} />
+          <span>Descargar todo</span>
+        </button>
+        <button type="button" class="secondary-btn" onclick={handleConflictSkipCustom}>
+          Omitir los personalizados
+        </button>
       </footer>
 
     {:else}
-      <!-- ── Fase de descarga ── -->
+      <!-- ── Fase 3: Progreso de descarga ── -->
       <header class="modal-header">
-        <span class="modal-kicker">Primer Arranque</span>
+        <span class="modal-kicker">Descargando</span>
         <h2 id="modal-title" class="modal-title">Descargando Audios Base</h2>
         <p class="modal-desc">
-          Play Ondas está descargando los archivos de audio para reproducir las
-          ondas sin conexión a internet.
+          Por favor, no cierres la aplicación hasta que finalice la descarga.
         </p>
       </header>
 
@@ -126,7 +195,7 @@
         {/if}
       </main>
 
-      <footer class="modal-footer">
+      <footer class="modal-footer" class:modal-footer--col={downloadStore.isFailed}>
         {#if downloadStore.isFailed}
           <button type="button" class="primary-btn" onclick={handleRetry}>
             <Download size={15} />
@@ -138,7 +207,7 @@
         {:else}
           <div class="loading-footer">
             <Loader2 size={16} class="animate-spin text-mut" />
-            <span class="loading-footer-text">Por favor, no cierres la aplicación...</span>
+            <span class="loading-footer-text">Descargando…</span>
           </div>
         {/if}
       </footer>
@@ -196,7 +265,7 @@
     justify-content: center;
     width: 52px;
     height: 52px;
-    background-color: var(--color-accent-subtle, color-mix(in srgb, var(--color-accent) 12%, transparent));
+    background-color: color-mix(in srgb, var(--color-accent) 12%, transparent);
     border-radius: var(--radius-pill);
     color: var(--color-accent);
     margin-bottom: var(--space-3);
@@ -235,6 +304,32 @@
     gap: var(--space-5);
   }
 
+  /* Conflict phase */
+  .conflict-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    background-color: var(--color-list-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+  }
+
+  .conflict-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-ui);
+    font-size: var(--text-label);
+    color: var(--color-ink-2);
+  }
+
+  :global(.conflict-icon) { color: var(--color-accent); flex-shrink: 0; }
+
+  /* Progress phase */
   .progress-section {
     display: flex;
     flex-direction: column;
@@ -267,9 +362,7 @@
     transition: width var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease);
   }
 
-  .progress-bar-fill.failed {
-    background-color: var(--color-error);
-  }
+  .progress-bar-fill.failed { background-color: var(--color-error); }
 
   .progress-subtext {
     font-size: var(--text-caption);
@@ -296,9 +389,7 @@
     transition: background-color var(--dur-fast) var(--ease);
   }
 
-  .file-row.active {
-    background-color: var(--color-line);
-  }
+  .file-row.active { background-color: var(--color-line); }
 
   .file-info {
     display: flex;
@@ -358,6 +449,7 @@
     line-height: 1.4;
   }
 
+  /* Footer */
   .modal-footer {
     padding: var(--space-4) var(--space-6) var(--space-6);
     border-top: 1px solid var(--color-line);
@@ -411,6 +503,26 @@
 
   .secondary-btn:hover  { border-color: var(--color-ink-2); color: var(--color-ink); }
   .secondary-btn:active { transform: scale(0.98); }
+
+  /* Checkbox "no volver a preguntar" */
+  .skip-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    font-family: var(--font-ui);
+    font-size: var(--text-caption);
+    color: var(--color-mut);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .skip-check {
+    accent-color: var(--color-accent);
+    width: 13px;
+    height: 13px;
+    cursor: pointer;
+  }
 
   .loading-footer {
     display: flex;

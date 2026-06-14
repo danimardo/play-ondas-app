@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { X, Sliders, ShieldCheck, Music, Keyboard, Pencil, Check, AlertTriangle } from 'lucide-svelte';
+  import { X, Sliders, ShieldCheck, Music, Keyboard, Pencil, Check, AlertTriangle, Download, Loader2 } from 'lucide-svelte';
   import ThemeSelector from '../lib/components/ThemeSelector.svelte';
   import WaveAudioRow from '../lib/components/WaveAudioRow.svelte';
   import FileModal from '../lib/components/FileModal.svelte';
@@ -7,6 +7,7 @@
   import { isTrayAvailable } from '../lib/services/trayService';
   import { WAVE_CATEGORIES } from '../lib/data/waves';
   import { settingsStore } from '../lib/stores/settingsStore.svelte';
+  import { downloadStore } from '../lib/stores/downloadStore.svelte';
   import { playerController } from '../lib/services/playerController';
   import { getCurrentWindow } from '@tauri-apps/api/window';
   import { getVersion } from '@tauri-apps/api/app';
@@ -70,6 +71,13 @@
     await getCurrentWindow().minimize();
   }
 
+  async function handleDownloadAudios() {
+    await downloadStore.checkMissingFiles();
+    if (downloadStore.missingFiles.length > 0) {
+      downloadStore.startDownload();
+    }
+  }
+
   let activeModalWave = $state<{ id: string; name: string } | null>(null);
 
   function handleOpenModal(waveId: string, waveName: string) {
@@ -126,6 +134,49 @@
       </h2>
       <div class="section-card">
         <ThemeSelector />
+      </div>
+    </section>
+
+    <!-- Sección: Audios base (descarga bajo demanda) -->
+    <section class="settings-section">
+      <h2 class="section-title">
+        <Download size={16} class="section-icon" />
+        <span>Audios base</span>
+      </h2>
+      <div class="section-card audio-base-card">
+        {#if downloadStore.isCompleted || downloadStore.missingFiles.length === 0}
+          <p class="audio-base-status audio-base-status--ok">
+            <Check size={14} />
+            <span>Todos los audios base están descargados.</span>
+          </p>
+        {:else if downloadStore.isDownloading}
+          <div class="audio-base-downloading">
+            <div class="audio-base-progress-row">
+              <Loader2 size={14} class="animate-spin text-accent" />
+              <span class="audio-base-progress-text">Descargando… {downloadStore.progress.globalProgressPercent}%</span>
+            </div>
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" style="width: {downloadStore.progress.globalProgressPercent}%"></div>
+            </div>
+          </div>
+        {:else if downloadStore.isFailed}
+          <p class="audio-base-status audio-base-status--err">
+            <AlertTriangle size={14} />
+            <span>Error en la descarga. Comprueba tu conexión.</span>
+          </p>
+          <button type="button" class="audio-base-btn" onclick={handleDownloadAudios}>
+            <Download size={13} />
+            <span>Reintentar</span>
+          </button>
+        {:else}
+          <p class="audio-base-status">
+            <span>{downloadStore.missingFiles.length} de 5 audios pendientes de descarga.</span>
+          </p>
+          <button type="button" class="audio-base-btn" onclick={handleDownloadAudios}>
+            <Download size={13} />
+            <span>Descargar ahora</span>
+          </button>
+        {/if}
       </div>
     </section>
 
@@ -529,4 +580,77 @@
     color: var(--color-faint);
     user-select: text;
   }
+
+  /* Sección Audios base */
+  .audio-base-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .audio-base-status {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-ui);
+    font-size: var(--text-body-sm);
+    color: var(--color-ink-2);
+    margin: 0;
+  }
+
+  .audio-base-status--ok { color: oklch(65% 0.18 145); }
+  .audio-base-status--err { color: var(--color-error); }
+
+  .audio-base-downloading {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .audio-base-progress-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .audio-base-progress-text {
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+    color: var(--color-ink-2);
+  }
+
+  .progress-bar-track {
+    height: 4px;
+    background-color: var(--color-line);
+    border-radius: var(--radius-pill);
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background-color: var(--color-accent);
+    border-radius: var(--radius-pill);
+    transition: width var(--dur-fast) var(--ease);
+  }
+
+  .audio-base-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-ui);
+    font-size: var(--text-label);
+    font-weight: 600;
+    background-color: var(--color-accent);
+    color: var(--color-accent-text);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: var(--space-2) var(--space-4);
+    cursor: pointer;
+    transition: opacity var(--dur-fast) var(--ease);
+    align-self: flex-start;
+  }
+
+  .audio-base-btn:hover  { opacity: 0.88; }
+  .audio-base-btn:active { transform: scale(0.98); }
 </style>

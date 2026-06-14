@@ -1,4 +1,4 @@
-import { listen, UnlistenFn } from '@tauri-apps/api/event';
+import { listen, emit, UnlistenFn } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
 import { z } from 'zod';
 import { WaveIdSchema, WaveId } from '../schemas/waveSchema';
@@ -58,9 +58,9 @@ class DownloadStore {
     }
   }
 
-  async startDownload(): Promise<void> {
+  async startDownload(waveIds?: string[]): Promise<void> {
     const operationId = nanoid(8);
-    logger.info('audio.download.started', {}, operationId);
+    logger.info('audio.download.started', { waveIds: waveIds ?? 'all' }, operationId);
     
     // Si ya hay un listener activo, lo limpiamos
     if (this.#unlistenProgress) {
@@ -84,6 +84,7 @@ class DownloadStore {
           // Loggear eventos significativos del ciclo
           if (parsed.status === 'completed') {
             logger.info('audio.download.completed', { filesCount: parsed.totalFiles }, operationId);
+            emit('audio-files-updated', null).catch(() => {});
           }
         } catch (validationErr) {
           logger.error('validation.failed', {
@@ -93,8 +94,8 @@ class DownloadStore {
         }
       });
 
-      // Lanzamos la descarga
-      await invoke('start_audio_download');
+      // Lanzamos la descarga (opcionalmente solo un subconjunto de ondas)
+      await invoke('start_audio_download', { waveIds: waveIds ?? null });
       
       // Tras finalizar con éxito, refrescamos la lista de archivos faltantes
       await this.checkMissingFiles();

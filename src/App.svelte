@@ -106,6 +106,7 @@
       // Ventana de configuración: init mínimo (solo settings para el tema)
       await settingsStore.initSettings();
       shortcutStatus = await getShortcutStatus(settingsStore.shortcuts).catch(() => shortcutStatus);
+      await downloadStore.checkMissingFiles();
       isReady = true;
 
       const win = getCurrentWindow();
@@ -200,13 +201,20 @@
     });
     unlistens.push(unlistenShortcut);
 
-    // Recargar settings al recuperar el foco (captura cambios hechos en la ventana de configuración)
+    // Recargar settings y estado de audios al recuperar el foco
     const unlistenFocus = await win.onFocusChanged(({ payload: focused }) => {
       if (focused) {
         void settingsStore.reloadSettings();
+        void downloadStore.checkMissingFiles();
       }
     });
     unlistens.push(unlistenFocus);
+
+    // Actualizar estado de audios si otra ventana completa la descarga
+    const unlistenAudioUpdated = await listen('audio-files-updated', () => {
+      void downloadStore.checkMissingFiles();
+    });
+    unlistens.push(unlistenAudioUpdated);
 
     // Persistir posición y tamaño de ventana al mover/redimensionar
     const unlistenMove = await win.onMoved(() => scheduleWindowStateSave());
@@ -288,7 +296,7 @@
       />
     {/if}
 
-    {#if downloadStore.missingFiles.length > 0 && !downloadStore.isCompleted && !downloadStore.usingExamples}
+    {#if downloadStore.missingFiles.length > 0 && !downloadStore.isCompleted && !downloadStore.usingExamples && !settingsStore.skipAudioDownloadOffer}
       <DownloadModal />
     {/if}
 
