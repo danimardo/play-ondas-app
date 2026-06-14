@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { X, Sliders, ShieldCheck, Music } from 'lucide-svelte';
+  import { X, Sliders, ShieldCheck, Music, Keyboard } from 'lucide-svelte';
   import ThemeSelector from '../lib/components/ThemeSelector.svelte';
   import WaveAudioRow from '../lib/components/WaveAudioRow.svelte';
   import FileModal from '../lib/components/FileModal.svelte';
@@ -9,6 +9,7 @@
   import { settingsStore } from '../lib/stores/settingsStore.svelte';
   import { playerController } from '../lib/services/playerController';
   import { getCurrentWindow } from '@tauri-apps/api/window';
+  import { getVersion } from '@tauri-apps/api/app';
 
   interface Props {
     onBack: () => void;
@@ -97,6 +98,25 @@
       </div>
     </section>
 
+    <!-- Sección: Atajos de teclado -->
+    <section class="settings-section">
+      <h2 class="section-title">
+        <Keyboard size={16} class="section-icon" />
+        <span>Atajos de teclado</span>
+      </h2>
+      <div class="section-card shortcuts-card">
+        <p class="shortcuts-note">Funcionan en segundo plano, aunque la ventana no tenga foco.</p>
+        <div class="shortcuts-grid">
+          <span class="shortcut-action">Reproducir / Pausar</span>
+          <span class="shortcut-keys font-mono"><kbd>Ctrl</kbd><span>+</span><kbd>Shift</kbd><span>+</span><kbd>P</kbd></span>
+          <span class="shortcut-action">Pausar</span>
+          <span class="shortcut-keys font-mono"><kbd>Ctrl</kbd><span>+</span><kbd>Shift</kbd><span>+</span><kbd>X</kbd></span>
+          <span class="shortcut-action">Detener</span>
+          <span class="shortcut-keys font-mono"><kbd>Ctrl</kbd><span>+</span><kbd>Shift</kbd><span>+</span><kbd>S</kbd></span>
+        </div>
+      </div>
+    </section>
+
     <!-- Sección: Integración con el Sistema (US4 Tray Settings) -->
     <section class="settings-section">
       <h2 class="section-title">
@@ -115,6 +135,13 @@
     </section>
 
   </main>
+
+  <!-- Versión en el pie -->
+  <footer class="settings-footer">
+    {#await getVersion() then version}
+      <span class="version-label font-mono">v{version}</span>
+    {/await}
+  </footer>
 </div>
 
 {#if activeModalWave}
@@ -230,5 +257,68 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
+  }
+
+  .shortcuts-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .shortcuts-note {
+    font-family: var(--font-ui);
+    font-size: var(--text-caption);
+    color: var(--color-mut);
+    margin: 0;
+  }
+
+  .shortcuts-grid {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--space-2) var(--space-4);
+    align-items: center;
+  }
+
+  .shortcut-action {
+    font-family: var(--font-ui);
+    font-size: var(--text-label);
+    color: var(--color-ink-2);
+  }
+
+  .shortcut-keys {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    justify-content: flex-end;
+    font-size: var(--text-caption);
+    color: var(--color-mut);
+  }
+
+  kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1px 5px;
+    background-color: var(--color-line);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font-size: var(--text-micro);
+    color: var(--color-ink-2);
+    font-family: var(--font-mono);
+    line-height: 1.6;
+  }
+
+  .settings-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: var(--space-3) var(--space-5);
+    border-top: 1px solid var(--color-border);
+    flex-shrink: 0;
+  }
+
+  .version-label {
+    font-size: var(--text-caption);
+    color: var(--color-faint);
+    user-select: text;
   }
 </style>

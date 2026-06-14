@@ -190,6 +190,15 @@
     });
     unlistens.push(unlistenTray);
 
+    // Atajos globales de teclado (funcionan aunque la ventana no tenga foco)
+    const unlistenShortcut = await listen<string>('global-shortcut', (event) => {
+      const action = event.payload;
+      if (action === 'toggle') playerController.toggle();
+      else if (action === 'pause') playerController.pause();
+      else if (action === 'stop') playerController.stop();
+    });
+    unlistens.push(unlistenShortcut);
+
     // Recargar settings al recuperar el foco (captura cambios hechos en la ventana de configuración)
     const unlistenFocus = await win.onFocusChanged(({ payload: focused }) => {
       if (focused) {

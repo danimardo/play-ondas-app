@@ -17,6 +17,11 @@ src-tauri/gen/
 
 # Cobertura de tests (generada)
 coverage/
+test-results/
+playwright-report/
+
+# Cachés locales de tooling
+.vite/
 
 # Variables de entorno (nunca commitear secretos)
 .env

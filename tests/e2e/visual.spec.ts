@@ -1,6 +1,9 @@
 import { test, expect } from '@playwright/test';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const SCREENSHOTS_DIR = path.resolve(__dirname, '../../play-ondas-app-design/assets/screenshots');
 
 // Tolerancia: ≤2% de píxeles diferentes por imagen de referencia (SC-008)
