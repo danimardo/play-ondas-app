@@ -64,6 +64,21 @@ class AudioService {
     }
   }
 
+  resume() {
+    if (this.#audio && this.#audio.paused) {
+      this.#audio.play().catch(err => {
+        logger.error('audio.playback.failed', {
+          waveId: this.#currentWaveId,
+          errorCode: 'RESUME_FAILED',
+          errorMessage: err instanceof Error ? err.message : String(err),
+        }, this.#operationId || undefined);
+      });
+      if (this.#currentWaveId && this.#operationId) {
+        logger.info('audio.playback.resumed', { waveId: this.#currentWaveId }, this.#operationId);
+      }
+    }
+  }
+
   pause() {
     if (this.#audio && !this.#audio.paused) {
       this.#audio.pause();

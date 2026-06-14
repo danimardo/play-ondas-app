@@ -55,6 +55,11 @@ export const playerController = {
   },
 
   async play(): Promise<void> {
+    if (playerStore.playbackStatus === 'paused') {
+      audioService.resume();
+      playerStore.setPlaybackStatus('playing');
+      return;
+    }
     await resolveAndPlay(playerStore.selectedWave, true);
   },
 
