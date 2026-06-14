@@ -1,6 +1,6 @@
 [package]
 name = "play-ondas-app"
-version = "1.0.0"
+version = "1.0.1"
 description = "Play Ondas app"
 authors = ["Daniel Diez Mardomingo"]
 edition = "2024"
