@@ -18,6 +18,7 @@
 
   import CloseToTrayDialog from './lib/components/CloseToTrayDialog.svelte';
   import { isTrayAvailable, sendTrayAction } from './lib/services/trayService';
+  import { applyShortcuts, getShortcutStatus, type ShortcutStatus } from './lib/services/shortcutService';
   import { getCurrentWindow } from '@tauri-apps/api/window';
   import { PhysicalPosition, PhysicalSize } from '@tauri-apps/api/dpi';
   import { listen } from '@tauri-apps/api/event';
@@ -30,6 +31,7 @@
   let showErrorToast = $state(false);
   let showCloseDialog = $state(false);
   let trayAvailable = $state(false);
+  let shortcutStatus = $state<ShortcutStatus>({ toggle: false, pause: false, stop: false });
   let unlistens: (() => void)[] = [];
   let windowStateTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -103,6 +105,7 @@
     if (isSettingsWindow) {
       // Ventana de configuración: init mínimo (solo settings para el tema)
       await settingsStore.initSettings();
+      shortcutStatus = await getShortcutStatus(settingsStore.shortcuts).catch(() => shortcutStatus);
       isReady = true;
 
       const win = getCurrentWindow();
@@ -125,6 +128,7 @@
     ]);
     playerController.syncFromSettings();
     trayAvailable = tray;
+    shortcutStatus = await applyShortcuts(settingsStore.shortcuts).catch(() => shortcutStatus);
 
     // Restaurar geometría de ventana guardada
     const win = getCurrentWindow();
@@ -225,7 +229,15 @@
 {#if isSettingsWindow}
   <!-- ── Ventana de configuración ── -->
   {#if isReady}
-    <SettingsView onBack={async () => await getCurrentWindow().hide()} />
+    <SettingsView
+      onBack={async () => await getCurrentWindow().hide()}
+      {shortcutStatus}
+      onApplyShortcuts={async (shortcuts) => {
+        const status = await applyShortcuts(shortcuts);
+        shortcutStatus = status;
+        settingsStore.shortcuts = shortcuts;
+      }}
+    />
   {:else}
     <div class="h-screen w-screen flex items-center justify-center bg-surface select-none">
       <div class="flex items-center gap-1.5">

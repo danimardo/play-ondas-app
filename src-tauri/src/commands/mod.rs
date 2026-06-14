@@ -3,6 +3,7 @@ pub mod settings;
 pub mod audio;
 pub mod download;
 pub mod tray;
+pub mod shortcuts;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
 #[serde(rename_all = "kebab-case")]

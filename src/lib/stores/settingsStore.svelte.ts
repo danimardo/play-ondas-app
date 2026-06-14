@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS, UserSettings } from '../schemas/settingsSchema';
+import { DEFAULT_SETTINGS, UserSettings, type Shortcuts } from '../schemas/settingsSchema';
 import { loadSettings, persistSettings } from '../services/settingsService';
 import { logger } from '../client/logging/logger.client';
 
@@ -99,6 +99,9 @@ class SettingsStore {
   get windowHeight() { return this.#current.windowHeight; }
   set windowHeight(value) { this.#current = { ...this.#current, windowHeight: value }; }
 
+  get shortcuts(): Shortcuts { return this.#current.shortcuts; }
+  set shortcuts(value: Shortcuts) { this.#current = { ...this.#current, shortcuts: value }; }
+
   async initSettings() {
     if (this.#initialized) return;
     try {
@@ -137,6 +140,7 @@ class SettingsStore {
             const windowY = this.windowY;
             const windowWidth = this.windowWidth;
             const windowHeight = this.windowHeight;
+            const shortcuts = this.shortcuts;
             const customAudio = {
               gamma: this.customAudio.gamma,
               beta: this.customAudio.beta,
@@ -155,6 +159,7 @@ class SettingsStore {
               startMinimized,
               closeDialogSeen,
               customAudio,
+              shortcuts,
               windowX,
               windowY,
               windowWidth,
@@ -217,7 +222,8 @@ class SettingsStore {
     this.#current.customAudio.alfa = null;
     this.#current.customAudio['theta-delta'] = null;
     this.#current.customAudio['brown-noise'] = null;
-    
+    this.#current.shortcuts = { ...DEFAULT_SETTINGS.shortcuts };
+
     this.#initialized = false;
     this.#error = null;
   }

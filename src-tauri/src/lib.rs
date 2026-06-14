@@ -10,10 +10,10 @@ use commands::settings::{load_settings, persist_settings};
 use commands::audio::{resolve_audio_path, replace_wave_audio, restore_wave_audio};
 use commands::download::{check_audio_files, start_audio_download, cancel_audio_download};
 use commands::tray::{resolve_tray_available, tray_action};
+use commands::shortcuts::{apply_shortcuts, get_shortcut_status};
 use download::DownloadState;
 use download::cleanup::cleanup_partial_downloads;
 use tauri::{Emitter, Manager, RunEvent};
-use tauri_plugin_global_shortcut::{Code, Modifiers, ShortcutState};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -23,28 +23,7 @@ pub fn run() {
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
-        .plugin(
-            tauri_plugin_global_shortcut::Builder::new()
-                .with_shortcuts(["ctrl+shift+p", "ctrl+shift+x", "ctrl+shift+s"])
-                .expect("Error al registrar atajos globales")
-                .with_handler(|app, shortcut, event| {
-                    if event.state == ShortcutState::Pressed {
-                        let action = if shortcut.matches(Modifiers::CONTROL | Modifiers::SHIFT, Code::KeyP) {
-                            Some("toggle")
-                        } else if shortcut.matches(Modifiers::CONTROL | Modifiers::SHIFT, Code::KeyX) {
-                            Some("pause")
-                        } else if shortcut.matches(Modifiers::CONTROL | Modifiers::SHIFT, Code::KeyS) {
-                            Some("stop")
-                        } else {
-                            None
-                        };
-                        if let Some(action) = action {
-                            let _ = app.emit("global-shortcut", action);
-                        }
-                    }
-                })
-                .build(),
-        )
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .manage(DownloadState::default())
         .setup(|app| {
             // Inicializar bandeja
@@ -76,7 +55,9 @@ pub fn run() {
             replace_wave_audio,
             restore_wave_audio,
             resolve_tray_available,
-            tray_action
+            tray_action,
+            apply_shortcuts,
+            get_shortcut_status
         ])
         .build(tauri::generate_context!())
         .expect("error while running tauri application");

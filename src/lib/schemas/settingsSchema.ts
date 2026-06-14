@@ -4,6 +4,19 @@ import { WaveIdSchema } from './waveSchema';
 export const ThemeSchema = z.enum(['auto', 'light', 'dark']);
 export type Theme = z.infer<typeof ThemeSchema>;
 
+export const ShortcutsSchema = z.object({
+  toggle: z.string(),
+  pause: z.string(),
+  stop: z.string(),
+});
+export type Shortcuts = z.infer<typeof ShortcutsSchema>;
+
+export const DEFAULT_SHORTCUTS: Shortcuts = {
+  toggle: 'ctrl+shift+p',
+  pause: 'ctrl+shift+x',
+  stop: 'ctrl+shift+s',
+};
+
 export const CustomAudioMapSchema = z.object({
   gamma: z.string().nullable(),
   beta: z.string().nullable(),
@@ -23,6 +36,8 @@ export const UserSettingsSchema = z.object({
   startMinimized: z.boolean(),
   closeDialogSeen: z.boolean(),
   customAudio: CustomAudioMapSchema,
+  // Shortcuts (optional in older settings files — defaults applied by Zod)
+  shortcuts: ShortcutsSchema.default(DEFAULT_SHORTCUTS),
   // Window geometry (optional — absent in older settings files)
   windowX: z.number().int().optional(),
   windowY: z.number().int().optional(),
@@ -47,6 +62,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
     'theta-delta': null,
     'brown-noise': null,
   },
+  shortcuts: DEFAULT_SHORTCUTS,
 };
 
 export const ValidationErrorSchema = z.object({

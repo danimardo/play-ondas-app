@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { X, Sliders, ShieldCheck, Music, Keyboard } from 'lucide-svelte';
+  import { X, Sliders, ShieldCheck, Music, Keyboard, Pencil, Check, AlertTriangle } from 'lucide-svelte';
   import ThemeSelector from '../lib/components/ThemeSelector.svelte';
   import WaveAudioRow from '../lib/components/WaveAudioRow.svelte';
   import FileModal from '../lib/components/FileModal.svelte';
@@ -10,12 +10,61 @@
   import { playerController } from '../lib/services/playerController';
   import { getCurrentWindow } from '@tauri-apps/api/window';
   import { getVersion } from '@tauri-apps/api/app';
+  import { shortcutToDisplayParts, captureShortcutFromEvent, type ShortcutStatus } from '../lib/services/shortcutService';
+  import type { Shortcuts } from '../lib/schemas/settingsSchema';
 
   interface Props {
     onBack: () => void;
+    shortcutStatus: ShortcutStatus;
+    onApplyShortcuts: (shortcuts: Shortcuts) => Promise<void>;
   }
 
-  let { onBack }: Props = $props();
+  let { onBack, shortcutStatus, onApplyShortcuts }: Props = $props();
+
+  // ── Edición de atajos ──────────────────────────────────────────────────────
+  type EditTarget = 'toggle' | 'pause' | 'stop';
+
+  const SHORTCUT_DEFS: { key: EditTarget; label: string }[] = [
+    { key: 'toggle', label: 'Reproducir / Pausar' },
+    { key: 'pause',  label: 'Pausar'              },
+    { key: 'stop',   label: 'Detener'             },
+  ];
+
+  let editTarget = $state<EditTarget | null>(null);
+  let capturedCombo = $state('');
+  let applying = $state(false);
+  let captureEl = $state<HTMLElement | null>(null);
+
+  $effect(() => {
+    if (editTarget && captureEl) captureEl.focus();
+  });
+
+  function startEdit(target: EditTarget) {
+    editTarget = target;
+    capturedCombo = '';
+  }
+
+  function handleCaptureKeyDown(e: KeyboardEvent) {
+    if (e.key === 'Escape') { cancelEdit(); return; }
+    e.preventDefault();
+    const combo = captureShortcutFromEvent(e);
+    if (combo) capturedCombo = combo;
+  }
+
+  async function confirmEdit() {
+    if (!editTarget || !capturedCombo || applying) return;
+    applying = true;
+    const newShortcuts: Shortcuts = { ...settingsStore.shortcuts, [editTarget]: capturedCombo };
+    await onApplyShortcuts(newShortcuts);
+    applying = false;
+    editTarget = null;
+    capturedCombo = '';
+  }
+
+  function cancelEdit() {
+    editTarget = null;
+    capturedCombo = '';
+  }
 
   async function minimize() {
     await getCurrentWindow().minimize();
@@ -105,15 +154,82 @@
         <span>Atajos de teclado</span>
       </h2>
       <div class="section-card shortcuts-card">
-        <p class="shortcuts-note">Funcionan en segundo plano, aunque la ventana no tenga foco.</p>
-        <div class="shortcuts-grid">
-          <span class="shortcut-action">Reproducir / Pausar</span>
-          <span class="shortcut-keys font-mono"><kbd>Ctrl</kbd><span>+</span><kbd>Shift</kbd><span>+</span><kbd>P</kbd></span>
-          <span class="shortcut-action">Pausar</span>
-          <span class="shortcut-keys font-mono"><kbd>Ctrl</kbd><span>+</span><kbd>Shift</kbd><span>+</span><kbd>X</kbd></span>
-          <span class="shortcut-action">Detener</span>
-          <span class="shortcut-keys font-mono"><kbd>Ctrl</kbd><span>+</span><kbd>Shift</kbd><span>+</span><kbd>S</kbd></span>
-        </div>
+        <p class="shortcuts-note">Funcionan en segundo plano, aunque la ventana no tenga foco. Haz clic en <Pencil size={11} class="inline-icon" /> para reasignar.</p>
+
+        {#each SHORTCUT_DEFS as def}
+          {@const currentCombo = settingsStore.shortcuts[def.key]}
+          {@const isActive = shortcutStatus[def.key]}
+          {@const isEditing = editTarget === def.key}
+
+          <div class="shortcut-row" class:is-editing={isEditing}>
+            <!-- Nombre de la acción -->
+            <span class="shortcut-label">{def.label}</span>
+
+            {#if isEditing}
+              <!-- Zona de captura -->
+              <div
+                class="shortcut-capture"
+                bind:this={captureEl}
+                tabindex="0"
+                role="textbox"
+                aria-label="Pulsa la nueva combinación de teclas"
+                onkeydown={handleCaptureKeyDown}
+              >
+                {#if capturedCombo}
+                  {#each shortcutToDisplayParts(capturedCombo) as part, i}
+                    {#if i > 0}<span class="sep">+</span>{/if}
+                    <kbd>{part}</kbd>
+                  {/each}
+                {:else}
+                  <span class="capture-hint">Pulsa una combinación…</span>
+                {/if}
+              </div>
+              <div class="shortcut-actions">
+                <button
+                  class="sc-btn sc-btn-confirm"
+                  disabled={!capturedCombo || applying}
+                  onclick={confirmEdit}
+                  aria-label="Confirmar atajo"
+                  title="Confirmar"
+                ><Check size={13} /></button>
+                <button
+                  class="sc-btn sc-btn-cancel"
+                  onclick={cancelEdit}
+                  aria-label="Cancelar edición"
+                  title="Cancelar"
+                ><X size={13} /></button>
+              </div>
+            {:else}
+              <!-- Combinación actual -->
+              <span class="shortcut-keys font-mono">
+                {#each shortcutToDisplayParts(currentCombo) as part, i}
+                  {#if i > 0}<span class="sep">+</span>{/if}
+                  <kbd>{part}</kbd>
+                {/each}
+              </span>
+              <!-- Indicador de estado -->
+              <span
+                class="shortcut-status"
+                class:status-ok={isActive}
+                class:status-warn={!isActive}
+                title={isActive ? 'Activo' : 'Conflicto con otra aplicación'}
+              >
+                {#if isActive}
+                  <Check size={12} />
+                {:else}
+                  <AlertTriangle size={12} />
+                {/if}
+              </span>
+              <!-- Editar -->
+              <button
+                class="sc-btn sc-btn-edit"
+                onclick={() => startEdit(def.key)}
+                aria-label="Editar atajo de {def.label}"
+                title="Cambiar atajo"
+              ><Pencil size={12} /></button>
+            {/if}
+          </div>
+        {/each}
       </div>
     </section>
 
@@ -270,16 +386,32 @@
     font-size: var(--text-caption);
     color: var(--color-mut);
     margin: 0;
-  }
-
-  .shortcuts-grid {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: var(--space-2) var(--space-4);
+    display: flex;
     align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
   }
 
-  .shortcut-action {
+  /* Icono inline dentro del párrafo */
+  :global(.inline-icon) {
+    display: inline;
+    vertical-align: middle;
+    color: var(--color-mut);
+  }
+
+  .shortcut-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 32px;
+  }
+
+  .shortcut-row.is-editing {
+    grid-template-columns: 1fr 1fr auto;
+  }
+
+  .shortcut-label {
     font-family: var(--font-ui);
     font-size: var(--text-label);
     color: var(--color-ink-2);
@@ -294,6 +426,11 @@
     color: var(--color-mut);
   }
 
+  .sep {
+    font-size: var(--text-micro);
+    color: var(--color-faint);
+  }
+
   kbd {
     display: inline-flex;
     align-items: center;
@@ -306,7 +443,78 @@
     color: var(--color-ink-2);
     font-family: var(--font-mono);
     line-height: 1.6;
+    white-space: nowrap;
   }
+
+  /* Zona de captura activa */
+  .shortcut-capture {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    justify-content: center;
+    padding: 4px 8px;
+    background-color: var(--color-bg);
+    border: 1px dashed var(--color-accent);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+    color: var(--color-ink);
+    cursor: text;
+    outline: none;
+    min-height: 28px;
+  }
+
+  .shortcut-capture:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 20%, transparent);
+  }
+
+  .capture-hint {
+    color: var(--color-faint);
+    font-style: italic;
+    font-family: var(--font-ui);
+  }
+
+  /* Indicador de estado */
+  .shortcut-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+  }
+
+  .status-ok { color: oklch(65% 0.18 145); }
+  .status-warn { color: var(--color-accent); }
+
+  /* Botones de acción de atajo */
+  .shortcut-actions {
+    display: flex;
+    gap: var(--space-1);
+  }
+
+  .sc-btn {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: none;
+    cursor: pointer;
+    transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+    color: var(--color-mut);
+  }
+
+  .sc-btn:hover { background-color: var(--color-line); color: var(--color-ink); }
+  .sc-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .sc-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
+
+  .sc-btn-confirm:not(:disabled) { color: oklch(65% 0.18 145); }
+  .sc-btn-confirm:not(:disabled):hover { background-color: oklch(65% 0.18 145 / 0.12); }
+  .sc-btn-cancel:hover { background-color: oklch(55% 0.18 25 / 0.12); color: oklch(55% 0.18 25); }
+  .sc-btn-edit { color: var(--color-mut); }
 
   .settings-footer {
     display: flex;
